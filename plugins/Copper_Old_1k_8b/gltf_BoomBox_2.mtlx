@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<materialx version="1.38">
+  <gltf_pbr name="SR_boombox" type="surfaceshader" xpos="1.7493625337127627" ypos="-3.6998262192148834">
+    <input name="base_color" type="color3" value="1, 1, 1" nodegraph="NG_main" output="output_Image_out" />
+    <input name="metallic" type="float" value="1" nodegraph="NG_main" output="output_Extract_out" />
+    <input name="roughness" type="float" value="1" nodegraph="NG_main" output="output_Extract_1_out" />
+    <input name="normal" type="vector3" value="0, 0, 0" nodegraph="NG_main" output="output_image_normal_out" />
+    <input name="tangent" type="vector3" value="0, 0, 0" />
+    <input name="occlusion" type="float" value="1" nodegraph="NG_main" output="output_Extract_2_out" />
+    <input name="transmission" type="float" value="0" />
+    <input name="specular" type="float" value="1" />
+    <input name="specular_color" type="color3" value="1, 1, 1" />
+    <input name="ior" type="float" value="1.5" />
+    <input name="alpha" type="float" value="1" />
+    <input name="alpha_mode" type="integer" value="0" />
+    <input name="alpha_cutoff" type="float" value="0.5" />
+    <input name="iridescence" type="float" value="0" />
+    <input name="iridescence_ior" type="float" value="1.3" />
+    <input name="iridescence_thickness" type="float" value="100" />
+    <input name="sheen_color" type="color3" value="0, 0, 0" />
+    <input name="sheen_roughness" type="float" value="0" />
+    <input name="clearcoat" type="float" value="0" />
+    <input name="clearcoat_roughness" type="float" value="0" />
+    <input name="clearcoat_normal" type="vector3" value="0, 0, 0" />
+    <input name="emissive" type="color3" value="0, 0, 0" nodegraph="NG_main" output="output_image_emission_out" />
+    <input name="emissive_strength" type="float" value="1" />
+    <input name="thickness" type="float" value="0" />
+    <input name="attenuation_distance" type="float" value="0" />
+    <input name="attenuation_color" type="color3" value="1, 1, 1" />
+  </gltf_pbr>
+  <surfacematerial name="Material_boombox" type="material" xpos="6.854362533712763" ypos="-3.6998262192148834">
+    <input name="surfaceshader" type="surfaceshader" nodename="SR_boombox" />
+  </surfacematerial>
+  <nodegraph name="NG_main" xpos="-3.6106374662872374" ypos="-3.6998262192148834">
+    <gltf_normalmap name="image_normal" type="vector3" xpos="-5.3992543222175735" ypos="4.21013520168144">
+      <input name="file" type="filename" value="D:/Work/materialx/bernard_MaterialX_2/resources/Materials/Examples/GltfPbr/boombox/BoomBox_normal.png" colorspace="srgb_texture" />
+      <input name="default" type="vector3" value="0.5, 0.5, 1" />
+      <input name="uvindex" type="integer" value="0" />
+      <input name="pivot" type="vector2" value="0, 1" />
+      <input name="scale" type="vector2" value="1, 1" />
+      <input name="rotate" type="float" value="0" />
+      <input name="offset" type="vector2" value="0, 0" />
+      <input name="operationorder" type="integer" value="0" />
+      <input name="uaddressmode" type="string" value="periodic" />
+      <input name="vaddressmode" type="string" value="periodic" />
+      <input name="filtertype" type="string" value="linear" />
+    </gltf_normalmap>
+    <gltf_image name="image_emission" type="color3" xpos="-5.0625" ypos="8.714">
+      <input name="file" type="filename" />
+      <input name="factor" type="color3" value="1, 1, 1" />
+      <input name="default" type="color3" value="0, 0, 0" />
+      <input name="uvindex" type="integer" value="0" />
+      <input name="pivot" type="vector2" value="0, 1" />
+      <input name="scale" type="vector2" value="1, 1" />
+      <input name="rotate" type="float" value="0" />
+      <input name="offset" type="vector2" value="0, 0" />
+      <input name="operationorder" type="integer" value="0" />
+      <input name="uaddressmode" type="string" value="periodic" />
+      <input name="vaddressmode" type="string" value="periodic" />
+      <input name="filtertype" type="string" value="linear" />
+    </gltf_image>
+    <extract name="Extract" type="float" xpos="-4.192380630061674" ypos="-1.9993969910413554">
+      <input name="in" type="color3" value="0, 0, 0" nodename="Image_1" />
+      <input name="index" type="integer" value="2" />
+    </extract>
+    <extract name="Extract_1" type="float" xpos="-4.302472211784967" ypos="-0.7003837475073265">
+      <input name="in" type="color3" value="0, 0, 0" nodename="Image_1" />
+      <input name="index" type="integer" value="1" />
+    </extract>
+    <extract name="Extract_2" type="float" xpos="-4.3088535521233675" ypos="0.6106985621575056">
+      <input name="in" type="color3" value="0, 0, 0" nodename="Image_1" />
+      <input name="index" type="integer" value="0" />
+    </extract>
+    <image name="Image" type="color3" xpos="-10.006518799355353" ypos="-4.141204709176947">
+      <input name="file" type="filename" value="D:/Work/materialx/bernard_MaterialX/resources/Materials/Examples/GltfPbr/boombox/BoomBox_baseColor.png" colorspace="srgb_texture" />
+      <input name="layer" type="string" value="" />
+      <input name="default" type="color3" value="0, 0, 0" />
+      <input name="texcoord" type="vector2" value="0, 0" />
+      <input name="uaddressmode" type="string" value="periodic" />
+      <input name="vaddressmode" type="string" value="periodic" />
+      <input name="filtertype" type="string" value="linear" />
+      <input name="framerange" type="string" value="" />
+      <input name="frameoffset" type="integer" value="0" />
+      <input name="frameendaction" type="string" value="constant" />
+    </image>
+    <image name="Image_1" type="color3" xpos="-8.397629814401412" ypos="-0.7668353030079158">
+      <input name="file" type="filename" value="D:/Work/materialx/bernard_MaterialX/resources/Materials/Examples/GltfPbr/boombox/BoomBox_occlusionRoughnessMetallic.png" colorspace="srgb_texture" />
+      <input name="layer" type="string" value="" />
+      <input name="default" type="color3" value="0, 0, 0" />
+      <input name="texcoord" type="vector2" value="0, 0" />
+      <input name="uaddressmode" type="string" value="periodic" />
+      <input name="vaddressmode" type="string" value="periodic" />
+      <input name="filtertype" type="string" value="linear" />
+      <input name="framerange" type="string" value="" />
+      <input name="frameoffset" type="integer" value="0" />
+      <input name="frameendaction" type="string" value="constant" />
+    </image>
+    <output name="output_image_normal_out" type="vector3" nodename="image_normal" />
+    <output name="output_image_emission_out" type="color3" nodename="image_emission" />
+    <output name="output_Extract_out" type="float" nodename="Extract" />
+    <output name="output_Extract_1_out" type="float" nodename="Extract_1" />
+    <output name="output_Extract_2_out" type="float" nodename="Extract_2" />
+    <output name="output_Image_out" type="color3" nodename="Image" />
+  </nodegraph>
+</materialx>
