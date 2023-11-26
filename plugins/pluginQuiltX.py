@@ -14,37 +14,34 @@ import MaterialX as mx
 
 logger = logging.getLogger(__name__)
 
-class GltfQuiltix(quiltix.QuiltiXWindow):
-    '''
-    QuiltiX window with glTF import/export functionality added
-    '''
-    def __init__(self, load_style_sheet=True, load_shaderball=True, load_default_graph=True):
-        super().__init__(load_style_sheet=True, load_shaderball=True, load_default_graph=True)
-
-        self.file_menu.addSeparator()
+class GltfQuilitxPlugin():
+    def __init__(self, editor):
+        self.editor = editor
+        self.editor.file_menu.addSeparator()
+        gltfMenu = self.editor.file_menu.addMenu("glTF")
 
         # Export menu item
-        export_gltf = QAction("Export to glTF...", self)
+        export_gltf = QAction("Export to glTF...", self.editor)
         export_gltf.triggered.connect(self.export_gltf_triggered)
-        self.file_menu.addAction(export_gltf)
+        gltfMenu.addAction(export_gltf)
 
         # Import menu item
-        import_gltf = QAction("Import from glTF...", self)
+        import_gltf = QAction("Import from glTF...", self.editor)
         import_gltf.triggered.connect(self.import_gltf_triggered)
-        self.file_menu.addAction(import_gltf)
+        gltfMenu.addAction(import_gltf)
 
     def import_gltf_triggered(self):
         '''
         Import a glTF file into the current graph.
         '''
-        start_path = self.mx_selection_path
+        start_path = self.editor.mx_selection_path
         if not start_path:
-            start_path = self.geometry_selection_path
+            start_path = self.editor.geometry_selection_path
 
         if not start_path:
             start_path = os.path.join(ROOT, "resources", "materials")
 
-        path = self.request_filepath(
+        path = self.editor.request_filepath(
             title="Load glTF file", start_path=start_path, file_filter="glTF files (*.gltf)", mode="open",
         )
 
@@ -72,21 +69,21 @@ class GltfQuiltix(quiltix.QuiltiXWindow):
                 doc = mx.createDocument()
                 mx.readFromXmlString(doc, docString)
                 
-                self.mx_selection_path = path
-                self.qx_node_graph.load_graph_from_mx_doc(doc, path)
-
+                self.editor.mx_selection_path = path
+                self.editor.qx_node_graph.load_graph_from_mx_doc(doc, path) 
+    
     def export_gltf_triggered(self):
         '''
         Export the current graph to a glTF file.
         '''
-        start_path = self.mx_selection_path
+        start_path = self.editor.mx_selection_path
         if not start_path:
-            start_path = self.geometry_selection_path
+            start_path = self.editor.geometry_selection_path
 
         if not start_path:
             start_path = os.path.join(ROOT, "resources", "materials")
 
-        path = self.request_filepath(
+        path = self.editor.request_filepath(
             title="Save glTF file", start_path=start_path, file_filter="glTF files (*.gltf)", mode="save",
         )
 
@@ -113,7 +110,7 @@ class GltfQuiltix(quiltix.QuiltiXWindow):
         if gltf_string == '{}':
             return
 
-        self.set_current_filepath(path)
+        self.editor.set_current_filepath(path)
         try:
             with open(path, "w") as f:
                 f.write(gltf_string)
@@ -130,14 +127,13 @@ class GltfQuiltix(quiltix.QuiltiXWindow):
             for image in images:
                 logger.debug('  - Embedded image: ' + image)
             for buffer in buffers:
-                logger.debug('  - Embedded buffer: ' + buffer)
+                logger.debug('  - Embedded buffer: ' + buffer)  
             logger.debug('- Packaging GLB file... finished.')
-
         except Exception as e:
             logger.error(e)
 
     def convert_graph_to_gltf(self, options):
-        doc = self.qx_node_graph.get_current_mx_graph_doc()
+        doc = self.editor.qx_node_graph.get_current_mx_graph_doc()
 
         mtlx2glTFWriter = core.MTLX2GLTFWriter()
         mtlx2glTFWriter.setOptions(options)
@@ -175,6 +171,17 @@ class GltfQuiltix(quiltix.QuiltiXWindow):
         gltfString = mtlx2glTFWriter.convert(doc)
 
         return gltfString
+                    
+
+class GltfQuiltix(quiltix.QuiltiXWindow):
+    '''
+    QuiltiX window with glTF import/export functionality added
+    '''
+    def __init__(self, load_style_sheet=True, load_shaderball=True, load_default_graph=True):
+        super().__init__(load_style_sheet=True, load_shaderball=True, load_default_graph=True)
+
+        self.plugin = GltfQuilitxPlugin(self)
+
     
 def launch():
     app = QApplication.instance()
