@@ -12,6 +12,8 @@ from QuiltiX.constants import ROOT
 import materialxgltf.core as core
 import MaterialX as mx
 
+import pkg_resources
+
 logger = logging.getLogger(__name__)
 
 class GltfQuilitxPlugin():
@@ -28,7 +30,7 @@ class GltfQuilitxPlugin():
         # Import menu item
         import_gltf = QAction("Import from glTF...", self.editor)
         import_gltf.triggered.connect(self.import_gltf_triggered)
-        gltfMenu.addAction(import_gltf)
+        gltfMenu.addAction(import_gltf)    
 
     def import_gltf_triggered(self):
         '''
@@ -48,6 +50,7 @@ class GltfQuilitxPlugin():
         options = core.GLTF2MtlxOptions()
         options['createAssignments'] = False   
         options['addAllInputs'] = False
+        options['addExtractNodes'] = True
         gltf2MtlxReader = core.GLTF2MtlxReader()
         gltf2MtlxReader.setOptions(options)
         doc = gltf2MtlxReader.convert(path)
@@ -68,6 +71,8 @@ class GltfQuilitxPlugin():
                 docString = core.Util.writeMaterialXDocString(doc)
                 doc = mx.createDocument()
                 mx.readFromXmlString(doc, docString)
+                print('Wrote MaterialX document to file: ' + path + '_stripped.mtlx')
+                core.Util.writeMaterialXDoc(doc, path + '_stripped.mtlx')
                 
                 self.editor.mx_selection_path = path
                 self.editor.qx_node_graph.load_graph_from_mx_doc(doc, path) 
@@ -92,8 +97,10 @@ class GltfQuilitxPlugin():
         # File name for baking
         options['bakeFileName'] = path + '_baked.mtlx'
         options['debugOutput'] = True
-        gltfGeomFileName = 'D:/Work/materialx/materialxgltf/src/materialxgltf/data/shaderball.gltf'
-        options['geometryFile'] = gltfGeomFileName
+        gltfGeometryFile = pkg_resources.resource_filename('materialxgltf', 'data/shaderBall.gltf')
+        print('> Load glTF geometry file: %s' % mx.FilePath(gltfGeometryFile).getBaseName())        
+        #gltfGeomFileName = 'D:/Work/materialx/materialxgltf/src/materialxgltf/data/shaderball.gltf'
+        options['geometryFile'] = gltfGeometryFile
         options['primsPerMaterial'] = True
         options['writeDefaultInputs'] = True
         
@@ -102,7 +109,7 @@ class GltfQuilitxPlugin():
             path = os.path.abspath(path)
         searchPath.append(mx.FilePath(path).getParentPath())
         searchPath.append(mx.FilePath.getCurrentPath())
-        searchPath.append(mx.FilePath(gltfGeomFileName).getParentPath())
+        searchPath.append(mx.FilePath(gltfGeometryFile).getParentPath())
         options['searchPath'] = searchPath
         options['packageBinary'] = True  
 
