@@ -4,8 +4,33 @@ import logging
 
 from Qt.QtWidgets import (  # type: ignore
     QApplication,
-    QAction
+    QAction,
+    QDockWidget,
+    QTextBrowser,
+    QVBoxLayout,
+    QTextEdit,    
 )
+
+from PySide2.QtWidgets import QApplication, QWidget
+from PySide2.QtWebEngineWidgets import QWebEngineView  # type: ignore
+
+from Qt import QtCore, QtGui, QtWidgets  # type: ignore
+#from Qt.QtWidgets import (  # type: ignore
+#    QAction,
+#    QActionGroup,
+#    QMenu,
+#    QMainWindow,
+#    QFileDialog,
+#    QApplication,
+#    QMessageBox,
+#    QDialog,
+#    QLabel,
+#    QLineEdit,
+#    QPushButton,
+#    QDialogButtonBox,
+#    QGridLayout,
+#    QSizePolicy,
+#)
 
 from QuiltiX import quiltix
 from QuiltiX.constants import ROOT
@@ -15,6 +40,27 @@ import MaterialX as mx
 import pkg_resources
 
 logger = logging.getLogger(__name__)
+
+class glTFWidget(QDockWidget):
+    def __init__(self, parent=None):
+        super(glTFWidget, self).__init__(parent)
+        
+        self.setWindowTitle("glTF Viewer")
+        
+        # Create a web view
+        self.web_view = QWebEngineView()        
+        self.web_view.setUrl(QtCore.QUrl('https://kwokcb.github.io/MaterialX_Learn/documents/gltfViewer_simple.html'))
+
+        # Set up the layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.web_view)
+        
+        # Create a central widget to hold the layout
+        central_widget = QWidget()
+        central_widget.setLayout(layout)
+        
+        # Set the central widget of the dock widget
+        self.setWidget(central_widget)
 
 class GltfQuilitxPlugin():
     def __init__(self, editor):
@@ -30,7 +76,20 @@ class GltfQuilitxPlugin():
         # Import menu item
         import_gltf = QAction("Import from glTF...", self.editor)
         import_gltf.triggered.connect(self.import_gltf_triggered)
-        gltfMenu.addAction(import_gltf)    
+        gltfMenu.addAction(import_gltf)
+
+        # Show glTF text. Does most of export, except does not write to file
+        show_gltf_text = QAction("Show as glTF...", self.editor)
+        show_gltf_text.triggered.connect(self.show_gltf_text_triggered)
+        gltfMenu.addAction(show_gltf_text)
+
+        self.setup_gltf_viewer_doc()
+
+    def setup_gltf_viewer_doc(self):
+
+        web_widget = glTFWidget(self.editor)
+        self.editor.addDockWidget(QtCore.Qt.RightDockWidgetArea, web_widget)
+        
 
     def import_gltf_triggered(self):
         '''
@@ -46,6 +105,10 @@ class GltfQuilitxPlugin():
         path = self.editor.request_filepath(
             title="Load glTF file", start_path=start_path, file_filter="glTF files (*.gltf)", mode="open",
         )
+
+        if not os.path.exists(path):
+            logger.error('Cannot find input file: ' + path)
+            return
 
         options = core.GLTF2MtlxOptions()
         options['createAssignments'] = False   
@@ -71,6 +134,8 @@ class GltfQuilitxPlugin():
                 docString = core.Util.writeMaterialXDocString(doc)
                 doc = mx.createDocument()
                 mx.readFromXmlString(doc, docString)
+                print('---------------------- MaterialX Document ----------------------')
+                print(docString)
                 print('Wrote MaterialX document to file: ' + path + '_stripped.mtlx')
                 core.Util.writeMaterialXDoc(doc, path + '_stripped.mtlx')
                 
@@ -92,6 +157,10 @@ class GltfQuilitxPlugin():
             title="Save glTF file", start_path=start_path, file_filter="glTF files (*.gltf)", mode="save",
         )
 
+        if not os.path.exists(path):
+            logger.error('Cannot find input file: ' + path)
+            return
+        
         options = core.MTLX2GLTFOptions()
 
         # File name for baking
@@ -112,6 +181,8 @@ class GltfQuilitxPlugin():
         searchPath.append(mx.FilePath(gltfGeometryFile).getParentPath())
         options['searchPath'] = searchPath
         options['packageBinary'] = True  
+        options['translateShaders'] = True
+        options['bakeTextures'] = True
 
         gltf_string = self.convert_graph_to_gltf(options)
         if gltf_string == '{}':
@@ -154,30 +225,68 @@ class GltfQuilitxPlugin():
         doc.importLibrary(stdlib)     
 
         # Perform shader translation if needed
-        translatedCount = mtlx2glTFWriter.translateShaders(doc)
-        logger.debug('- Translated shaders.' + str(translatedCount))
+        translatedCount = 0
+        if options['translateShaders']:
+            translatedCount = mtlx2glTFWriter.translateShaders(doc)
+            logger.debug('- Translated shaders.' + str(translatedCount))
 
         # Perform baking if needed
-        if translatedCount > 0:
-            logger.debug('- Baking start {')
+        if translatedCount > 0 and options['bakeTextures']:
+            logger.debug('- Baking start...')
             bakeResolution = 1024
             bakedFileName = options['bakeFileName']
-            #if options['bakeResolution']:
-            #    bakeResolution = options['bakeResolution']
+            if options['bakeResolution']:
+                bakeResolution = options['bakeResolution']
             mtlx2glTFWriter.bakeTextures(doc, False, bakeResolution, bakeResolution, False, 
                                         False, False, bakedFileName)
-            logger.debug('  - Baked textures to: ' + bakedFileName)
-            doc, libFiles = core.Util.createMaterialXDoc()
-            mx.readFromXmlFile(doc, bakedFileName, options['searchPath'])
-            remappedUris = core.Util.makeFilePathsRelative(doc, bakedFileName)
-            for uri in remappedUris:
-                logger.debug('  - Remapped URI: ' + uri[0] + ' to ' + uri[1])
-                core.Util.writeMaterialXDoc(doc, bakedFileName)
-            logger.debug('- Baking end.')
+            if os.path.exists(bakedFileName):
+                logger.debug('  - Baked textures to: ' + bakedFileName)
+                doc, libFiles = core.Util.createMaterialXDoc()
+                mx.readFromXmlFile(doc, bakedFileName, options['searchPath'])
+                remappedUris = core.Util.makeFilePathsRelative(doc, bakedFileName)
+                for uri in remappedUris:
+                    logger.debug('  - Remapped URI: ' + uri[0] + ' to ' + uri[1])
+                    core.Util.writeMaterialXDoc(doc, bakedFileName)
+            logger.debug('- ...Baking end.')
 
         gltfString = mtlx2glTFWriter.convert(doc)
-
         return gltfString
+
+    def show_gltf_text_triggered(self):
+
+        options = core.MTLX2GLTFOptions()
+        options['debugOutput'] = False
+        options['primsPerMaterial'] = False
+        options['writeDefaultInputs'] = False
+        options['translateShaders'] = True
+        options['bakeTextures'] = True
+
+        path = self.editor.mx_selection_path
+        if not path:
+            path = self.editor.geometry_selection_path
+        if not path:
+            path = os.path.join(ROOT, "resources", "materials")
+
+        searchPath = mx.getDefaultDataSearchPath()
+        if not mx.FilePath(path).isAbsolute():
+            path = os.path.abspath(path)
+        searchPath.append(mx.FilePath(path).getParentPath())
+        searchPath.append(mx.FilePath.getCurrentPath())
+        # We do not embed the geometry file in the glTF file, so there is no need to add the path to the geometry file
+        #searchPath.append(mx.FilePath(gltfGeometryFile).getParentPath())
+        options['searchPath'] = searchPath
+
+        options['bakeFileName'] = path + '/_temp_bake.mtlx'
+
+        # Convert and display the text
+        text = self.convert_graph_to_gltf(options)
+        te_text = QTextEdit()
+        te_text.setText(text)
+        te_text.setReadOnly(True)
+        te_text.setParent(self.editor, QtCore.Qt.Window)
+        te_text.setWindowTitle("glTF text preview")
+        te_text.resize(1000, 800)
+        te_text.show()
                     
 
 class GltfQuiltix(quiltix.QuiltiXWindow):
