@@ -48,6 +48,8 @@ class glTFWidget(QDockWidget):
         super(glTFWidget, self).__init__(parent)
         
         self.setWindowTitle("glTF Viewer")
+
+        self.setFloating(False)
         
         # Create a web view
         self.web_view = QWebEngineView()        
