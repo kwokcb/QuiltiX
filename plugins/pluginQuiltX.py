@@ -36,6 +36,7 @@ from Qt import QtCore # type: ignore
 from QuiltiX import quiltix
 from QuiltiX.constants import ROOT
 import materialxgltf.core as core
+import materialxgltf
 import MaterialX as mx
 
 import pkg_resources
@@ -51,6 +52,7 @@ class glTFWidget(QDockWidget):
         # Create a web view
         self.web_view = QWebEngineView()        
         self.web_view.setUrl(QtCore.QUrl('https://kwokcb.github.io/MaterialX_Learn/documents/gltfViewer_simple.html'))
+        # e.g. Set to local host if you want to run a local page
         #self.web_view.setUrl(QtCore.QUrl('http://localhost:8000/gltfViewer_simple.html'))
 
         # Set up the layout
@@ -67,6 +69,9 @@ class glTFWidget(QDockWidget):
 class GltfQuilitxPlugin():
     def __init__(self, editor):
         self.editor = editor
+
+        # Update 'File' menu
+        #########################################
         self.editor.file_menu.addSeparator()
         gltfMenu = self.editor.file_menu.addMenu("glTF")
 
@@ -85,13 +90,37 @@ class GltfQuilitxPlugin():
         show_gltf_text.triggered.connect(self.show_gltf_text_triggered)
         gltfMenu.addAction(show_gltf_text)
 
+        version = 'materialxgltf version: ' + materialxgltf.__version__
+        version_action = QAction(version, self.editor)
+        version_action.setEnabled(False)
+        gltfMenu.addAction(version_action)
+
+        # Add glTF Viewer
         self.setup_gltf_viewer_doc()
 
+        # Update 'View' menu
+        #########################################
+        # Add viewer toggle
+        self.act_gltf_viewer = QAction("glTF Viewer", self.editor)
+        self.act_gltf_viewer.setCheckable(True)
+        self.act_gltf_viewer.toggled.connect(self.on_gltf_viewer_toggled)
+        self.editor.view_menu.addSeparator()
+        self.editor.view_menu.addAction(self.act_gltf_viewer)
+
+        # Override about to show event to update the gltf viewer toggle
+        self.editor.view_menu.aboutToShow.connect(self.custom_on_view_menu_about_to_show) 
+
+    def custom_on_view_menu_about_to_show(self):
+        self.editor.on_view_menu_showing()
+        self.act_gltf_viewer.setChecked(self.web_dock_widget.isVisible())
+
+    def on_gltf_viewer_toggled(self, checked):
+        self.web_dock_widget.setVisible(checked)
+        
     def setup_gltf_viewer_doc(self):
 
-        web_widget = glTFWidget(self.editor)
-        self.editor.addDockWidget(QtCore.Qt.RightDockWidgetArea, web_widget)
-        
+        self.web_dock_widget = glTFWidget(self.editor)
+        self.editor.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.web_dock_widget)        
 
     def import_gltf_triggered(self):
         '''
@@ -144,6 +173,35 @@ class GltfQuilitxPlugin():
                 self.editor.mx_selection_path = path
                 self.editor.qx_node_graph.load_graph_from_mx_doc(doc, path) 
     
+    def setup_default_export_options(self, path, bakeFileName, embed_geometry=False):
+        '''
+        Set up the default export options for the given path.
+        '''
+        options = core.MTLX2GLTFOptions()
+
+        options['debugOutput'] = False
+        options['bakeFileName'] = bakeFileName
+
+        if embed_geometry:
+            gltfGeometryFile = pkg_resources.resource_filename('materialxgltf', 'data/shaderBall.gltf')
+            print('> Load glTF geometry file: %s' % mx.FilePath(gltfGeometryFile).getBaseName())        
+            options['geometryFile'] = gltfGeometryFile        
+        options['primsPerMaterial'] = True
+        options['writeDefaultInputs'] = False
+        options['translateShaders'] = True
+        options['bakeTextures'] = True
+
+        searchPath = mx.getDefaultDataSearchPath()
+        if not mx.FilePath(path).isAbsolute():
+            path = os.path.abspath(path)
+        searchPath.append(mx.FilePath(path).getParentPath())
+        searchPath.append(mx.FilePath.getCurrentPath())
+        if embed_geometry:
+            searchPath.append(mx.FilePath(gltfGeometryFile).getParentPath())
+        options['searchPath'] = searchPath
+
+        return options
+
     def export_gltf_triggered(self):
         '''
         Export the current graph to a glTF file.
@@ -158,39 +216,20 @@ class GltfQuilitxPlugin():
         path = self.editor.request_filepath(
             title="Save glTF file", start_path=start_path, file_filter="glTF files (*.gltf)", mode="save",
         )
-
-        #if not os.path.exists(path):
-        #    logger.error('Cannot find input file: ' + path)
-        #    return
         
-        options = core.MTLX2GLTFOptions()
-
-        # File name for baking
-        options['bakeFileName'] = path + '_baked.mtlx'
-        options['debugOutput'] = True
-        gltfGeometryFile = pkg_resources.resource_filename('materialxgltf', 'data/shaderBall.gltf')
-        print('> Load glTF geometry file: %s' % mx.FilePath(gltfGeometryFile).getBaseName())        
-        #gltfGeomFileName = 'D:/Work/materialx/materialxgltf/src/materialxgltf/data/shaderball.gltf'
-        options['geometryFile'] = gltfGeometryFile
-        options['primsPerMaterial'] = True
-        options['writeDefaultInputs'] = True
-        
-        searchPath = mx.getDefaultDataSearchPath()
-        if not mx.FilePath(path).isAbsolute():
-            path = os.path.abspath(path)
-        searchPath.append(mx.FilePath(path).getParentPath())
-        searchPath.append(mx.FilePath.getCurrentPath())
-        searchPath.append(mx.FilePath(gltfGeometryFile).getParentPath())
-        options['searchPath'] = searchPath
-        options['packageBinary'] = True  
-        options['translateShaders'] = True
-        options['bakeTextures'] = True
+        # Set up export options
+        bakeFileName = path + '_baked.mtlx'
+        options = self.setup_default_export_options(path, bakeFileName, embed_geometry=True)
+        print('Export options:', options)
 
         gltf_string = self.convert_graph_to_gltf(options)
         if gltf_string == '{}':
             return
 
         self.editor.set_current_filepath(path)
+
+        # To be able to view the exported file in the glTF viewer, we need to package to a  binary file
+        options['packageBinary'] = True
         try:
             with open(path, "w") as f:
                 f.write(gltf_string)
@@ -211,6 +250,7 @@ class GltfQuilitxPlugin():
             logger.debug('- Packaging GLB file... finished.')
         except Exception as e:
             logger.error(e)
+   
 
     def convert_graph_to_gltf(self, options):
         doc = self.editor.qx_node_graph.get_current_mx_graph_doc()
@@ -230,7 +270,7 @@ class GltfQuilitxPlugin():
         translatedCount = 0
         if options['translateShaders']:
             translatedCount = mtlx2glTFWriter.translateShaders(doc)
-            logger.debug('- Translated shaders.' + str(translatedCount))
+            logger.debug('- Translated shaders: ' + str(translatedCount))
 
         # Perform baking if needed
         if translatedCount > 0 and options['bakeTextures']:
@@ -256,37 +296,23 @@ class GltfQuilitxPlugin():
 
     def show_gltf_text_triggered(self):
 
-        options = core.MTLX2GLTFOptions()
-        options['debugOutput'] = False
-        options['primsPerMaterial'] = False
-        options['writeDefaultInputs'] = False
-        options['translateShaders'] = True
-        options['bakeTextures'] = True
-
         path = self.editor.mx_selection_path
         if not path:
             path = self.editor.geometry_selection_path
         if not path:
             path = os.path.join(ROOT, "resources", "materials")
 
-        searchPath = mx.getDefaultDataSearchPath()
-        if not mx.FilePath(path).isAbsolute():
-            path = os.path.abspath(path)
-        searchPath.append(mx.FilePath(path).getParentPath())
-        searchPath.append(mx.FilePath.getCurrentPath())
-        # We do not embed the geometry file in the glTF file, so there is no need to add the path to the geometry file
-        #searchPath.append(mx.FilePath(gltfGeometryFile).getParentPath())
-        options['searchPath'] = searchPath
-
-        options['bakeFileName'] = path + '/_temp_bake.mtlx'
-
+        # Setup export options
+        bakeFileName = path + '/temp_baked.mtlx'
+        options = self.setup_default_export_options(path, bakeFileName, embed_geometry=False)
+    
         # Convert and display the text
         text = self.convert_graph_to_gltf(options)
         te_text = QTextEdit()
         te_text.setText(text)
         te_text.setReadOnly(True)
         te_text.setParent(self.editor, QtCore.Qt.Window)
-        te_text.setWindowTitle("glTF text preview")
+        te_text.setWindowTitle("glTF Text Preview")
         te_text.resize(1000, 800)
         te_text.show()
                     
