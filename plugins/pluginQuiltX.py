@@ -8,13 +8,14 @@ from Qt.QtWidgets import (  # type: ignore
     QDockWidget,
     QTextBrowser,
     QVBoxLayout,
-    QTextEdit,    
+    QTextEdit,   
+    QWidget 
 )
 
-from PySide2.QtWidgets import QApplication, QWidget
+#from PySide2.QtWidgets import QApplication, QWidget
 from PySide2.QtWebEngineWidgets import QWebEngineView  # type: ignore
 
-from Qt import QtCore, QtGui, QtWidgets  # type: ignore
+from Qt import QtCore # type: ignore
 #from Qt.QtWidgets import (  # type: ignore
 #    QAction,
 #    QActionGroup,
@@ -50,6 +51,7 @@ class glTFWidget(QDockWidget):
         # Create a web view
         self.web_view = QWebEngineView()        
         self.web_view.setUrl(QtCore.QUrl('https://kwokcb.github.io/MaterialX_Learn/documents/gltfViewer_simple.html'))
+        #self.web_view.setUrl(QtCore.QUrl('http://localhost:8000/gltfViewer_simple.html'))
 
         # Set up the layout
         layout = QVBoxLayout()
@@ -157,9 +159,9 @@ class GltfQuilitxPlugin():
             title="Save glTF file", start_path=start_path, file_filter="glTF files (*.gltf)", mode="save",
         )
 
-        if not os.path.exists(path):
-            logger.error('Cannot find input file: ' + path)
-            return
+        #if not os.path.exists(path):
+        #    logger.error('Cannot find input file: ' + path)
+        #    return
         
         options = core.MTLX2GLTFOptions()
 
@@ -201,7 +203,7 @@ class GltfQuilitxPlugin():
             mtlx2glTFWriter = core.MTLX2GLTFWriter()
             mtlx2glTFWriter.setOptions(options)
             saved, images, buffers = mtlx2glTFWriter.packageGLTF(path, binaryFileName)
-            logger.debug('- Save GLB file:' + binaryFileName + '. Status:' + str(saved))
+            logger.info('- Save GLB file:' + binaryFileName + '. Status:' + str(saved))
             for image in images:
                 logger.debug('  - Embedded image: ' + image)
             for buffer in buffers:
@@ -233,7 +235,7 @@ class GltfQuilitxPlugin():
         # Perform baking if needed
         if translatedCount > 0 and options['bakeTextures']:
             logger.debug('- Baking start...')
-            bakeResolution = 1024
+            bakeResolution = 2048
             bakedFileName = options['bakeFileName']
             if options['bakeResolution']:
                 bakeResolution = options['bakeResolution']
