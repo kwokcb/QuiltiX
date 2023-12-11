@@ -35,9 +35,24 @@ from Qt import QtCore # type: ignore
 
 from QuiltiX import quiltix
 from QuiltiX.constants import ROOT
-import materialxgltf.core as core
-import materialxgltf
+
+# MaterialX and related modules
 import MaterialX as mx
+
+haveJson = False
+try:
+    import materialxjson.core as jsoncore
+    haveJson = True
+except ImportError:
+    print("materialxjson module is not installed.")
+
+haveGLTF = False
+try:
+    import materialxgltf.core as core
+    import materialxgltf
+    haveGLTF = True
+except ImportError:
+    print("materialxgltf module is not installed.")
 
 import pkg_resources
 
@@ -69,48 +84,80 @@ class glTFWidget(QDockWidget):
         self.setWidget(central_widget)
 
 class GltfQuilitxPlugin():
-    def __init__(self, editor):
+    def __init__(self, editor, haveGLTF, haveJson):
         self.editor = editor
 
-        # Update 'File' menu
-        #########################################
-        self.editor.file_menu.addSeparator()
-        gltfMenu = self.editor.file_menu.addMenu("glTF")
+        # Test to disable all plug-ins
+        disableAll = False
+        if disableAll:
+            haveGLTF = False
+            haveJson = False
 
-        # Export menu item
-        export_gltf = QAction("Export to glTF...", self.editor)
-        export_gltf.triggered.connect(self.export_gltf_triggered)
-        gltfMenu.addAction(export_gltf)
+        if not haveGLTF and not haveJson:
+            logger.error('Neither materialxjson nor materialxgltf modules are installed. glTF/JSON support will not be available.')
+        
+        if haveJson:
+            # JSON menu items
+            # ----------------------------------------
+            self.editor.file_menu.addSeparator()
+            gltfMenu = self.editor.file_menu.addMenu("JSON")
+            # Export JSON item
+            export_json = QAction("Save JSON...", self.editor)
+            export_json.triggered.connect(self.export_json_triggered)
+            gltfMenu.addAction(export_json)
 
-        # Import menu item
-        import_gltf = QAction("Import from glTF...", self.editor)
-        import_gltf.triggered.connect(self.import_gltf_triggered)
-        gltfMenu.addAction(import_gltf)
+            # Import JSON item
+            import_json = QAction("Load JSON...", self.editor)
+            import_json.triggered.connect(self.import_json_triggered)
+            gltfMenu.addAction(import_json)
 
-        # Show glTF text. Does most of export, except does not write to file
-        show_gltf_text = QAction("Show as glTF...", self.editor)
-        show_gltf_text.triggered.connect(self.show_gltf_text_triggered)
-        gltfMenu.addAction(show_gltf_text)
+            # Show JSON text. Does most of export, except does not write to file
+            show_json_text = QAction("Show as JSON...", self.editor)
+            show_json_text.triggered.connect(self.show_json_triggered)
+            gltfMenu.addAction(show_json_text)
 
-        version = 'materialxgltf version: ' + materialxgltf.__version__
-        version_action = QAction(version, self.editor)
-        version_action.setEnabled(False)
-        gltfMenu.addAction(version_action)
+        if haveGLTF:
+            # glTF menu items
+            # ----------------------------------------
+            # Update 'File' menu
+            #########################################
+            self.editor.file_menu.addSeparator()
+            gltfMenu = self.editor.file_menu.addMenu("glTF")
 
-        # Add glTF Viewer
-        self.setup_gltf_viewer_doc()
+            # Export menu item
+            export_gltf = QAction("Export to glTF...", self.editor)
+            export_gltf.triggered.connect(self.export_gltf_triggered)
+            gltfMenu.addAction(export_gltf)
 
-        # Update 'View' menu
-        #########################################
-        # Add viewer toggle
-        self.act_gltf_viewer = QAction("glTF Viewer", self.editor)
-        self.act_gltf_viewer.setCheckable(True)
-        self.act_gltf_viewer.toggled.connect(self.on_gltf_viewer_toggled)
-        self.editor.view_menu.addSeparator()
-        self.editor.view_menu.addAction(self.act_gltf_viewer)
+            # Import menu item
+            import_gltf = QAction("Import from glTF...", self.editor)
+            import_gltf.triggered.connect(self.import_gltf_triggered)
+            gltfMenu.addAction(import_gltf)
 
-        # Override about to show event to update the gltf viewer toggle
-        self.editor.view_menu.aboutToShow.connect(self.custom_on_view_menu_about_to_show) 
+            # Show glTF text. Does most of export, except does not write to file
+            show_gltf_text = QAction("Show as glTF...", self.editor)
+            show_gltf_text.triggered.connect(self.show_gltf_text_triggered)
+            gltfMenu.addAction(show_gltf_text)
+
+            version = 'materialxgltf version: ' + materialxgltf.__version__
+            version_action = QAction(version, self.editor)
+            version_action.setEnabled(False)
+            gltfMenu.addAction(version_action)
+
+            # Add glTF Viewer
+            self.setup_gltf_viewer_doc()
+
+            # Update 'View' menu
+            #########################################
+            # Add viewer toggle
+            self.act_gltf_viewer = QAction("glTF Viewer", self.editor)
+            self.act_gltf_viewer.setCheckable(True)
+            self.act_gltf_viewer.toggled.connect(self.on_gltf_viewer_toggled)
+            self.editor.view_menu.addSeparator()
+            self.editor.view_menu.addAction(self.act_gltf_viewer)
+
+            # Override about to show event to update the gltf viewer toggle
+            self.editor.view_menu.aboutToShow.connect(self.custom_on_view_menu_about_to_show) 
 
     def custom_on_view_menu_about_to_show(self):
         self.editor.on_view_menu_showing()
@@ -123,6 +170,92 @@ class GltfQuilitxPlugin():
 
         self.web_dock_widget = glTFWidget(self.editor)
         self.editor.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.web_dock_widget)        
+
+
+    ## Core utilities
+    def show_text_box(self, text, title=""):
+        '''
+        Show a text box with the given text.
+        '''
+        te_text = QTextEdit()
+        te_text.setText(text)
+        te_text.setReadOnly(True)
+        te_text.setParent(self.editor, QtCore.Qt.Window)
+        te_text.setWindowTitle(title)
+        te_text.resize(1000, 800)
+        te_text.show()
+
+    def show_json_triggered(self):
+        '''
+        Show the current graph as JSON text.
+        '''
+        doc = self.editor.qx_node_graph.get_current_mx_graph_doc()
+
+        exporter = jsoncore.MaterialXJson()
+
+        json_result = exporter.documentToJSON(doc)
+
+        # Write JSON to file
+        if json_result:
+            text = jsoncore.Util.jsonToJSONString(json_result, 2)
+            self.show_text_box(text, 'JSON Representation')
+
+    def export_json_triggered(self):
+        '''
+        Export the current graph to a JSON file.
+        '''
+        start_path = self.editor.mx_selection_path
+        if not start_path:
+            start_path = self.editor.geometry_selection_path
+
+        if not start_path:
+            start_path = os.path.join(ROOT, "resources", "materials")
+
+        path = self.editor.request_filepath(
+            title="Save JSON file", start_path=start_path, file_filter="JSON files (*.json)", mode="save",
+        )
+
+        if not path:
+            return
+
+        doc = self.editor.qx_node_graph.get_current_mx_graph_doc()
+
+        exporter = jsoncore.MaterialXJson()
+
+        json_result = exporter.documentToJSON(doc)
+
+        # Write JSON to file
+        if json_result:
+            with open(path, 'w') as outfile:
+                jsoncore.Util.writeJson(json_result, path, 2)
+                logger.info('Wrote JSON file: ' + path)
+
+        self.editor.set_current_filepath(path)
+
+    def import_json_triggered(self):
+        '''
+        Import a JSON file into the current graph.
+        '''
+        start_path = self.editor.mx_selection_path
+        if not start_path:
+            start_path = self.editor.geometry_selection_path
+
+        if not start_path:
+            start_path = os.path.join(ROOT, "resources", "materials")
+
+        path = self.editor.request_filepath(
+            title="Load JSON file", start_path=start_path, file_filter="JSON files (*.json)", mode="open",
+        )
+
+        if not os.path.exists(path):
+            logger.error('Cannot find input file: ' + path)
+            return
+
+        doc = jsoncore.Util.jsonFileToXml(path) 
+        if doc:
+            logger.info('Loaded JSON file: ' + path)
+            self.editor.mx_selection_path = path
+            self.editor.qx_node_graph.load_graph_from_mx_doc(doc, path)
 
     def import_gltf_triggered(self):
         '''
@@ -310,23 +443,17 @@ class GltfQuilitxPlugin():
     
         # Convert and display the text
         text = self.convert_graph_to_gltf(options)
-        te_text = QTextEdit()
-        te_text.setText(text)
-        te_text.setReadOnly(True)
-        te_text.setParent(self.editor, QtCore.Qt.Window)
-        te_text.setWindowTitle("glTF Text Preview")
-        te_text.resize(1000, 800)
-        te_text.show()
+        self.show_text_box(text, 'glTF Representation')
                     
 
 class GltfQuiltix(quiltix.QuiltiXWindow):
     '''
-    QuiltiX window with glTF import/export functionality added
+    QuiltiX window with plug-in functionality added
     '''
     def __init__(self, load_style_sheet=True, load_shaderball=True, load_default_graph=True):
         super().__init__(load_style_sheet=True, load_shaderball=True, load_default_graph=True)
 
-        self.plugin = GltfQuilitxPlugin(self)
+        self.plugin = GltfQuilitxPlugin(self, haveGLTF, haveJson)
 
     
 def launch():
