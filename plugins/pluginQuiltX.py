@@ -36,6 +36,9 @@ from Qt import QtCore # type: ignore
 from QuiltiX import quiltix
 from QuiltiX.constants import ROOT
 
+# Usd modules
+from pxr import Usd, UsdLux, Sdf, Tf, UsdGeom,  UsdShade, Gf  # noqa: E402 # type: ignore
+
 # MaterialX and related modules
 import MaterialX as mx
 
@@ -96,6 +99,13 @@ class GltfQuilitxPlugin():
         if not haveGLTF and not haveJson:
             logger.error('Neither materialxjson nor materialxgltf modules are installed. glTF/JSON support will not be available.')
         
+        self.editor.file_menu.addSeparator()
+        gltfMenu = self.editor.file_menu.addMenu("USD")
+        # Show USD Stage . 
+        show_usd_text = QAction("Show USD Stage...", self.editor)
+        show_usd_text.triggered.connect(self.show_usd_triggered)
+        gltfMenu.addAction(show_usd_text)
+
         if haveJson:
             # JSON menu items
             # ----------------------------------------
@@ -185,9 +195,41 @@ class GltfQuilitxPlugin():
         te_text.resize(1000, 800)
         te_text.show()
 
-    def show_json_triggered(self):
+    def print_prim(self, prim):
+        """
+        Isolates a prim, and prints it out
+        Args:
+            prim (Usd.Prim)
+        """
+        assert isinstance(prim, Usd.Prim)
+        prim_stage = prim.GetStage()
+        prim_stage_id = prim_stage.GetRootLayer().identifier
+        stage = Usd.Stage.CreateInMemory()
+        target = stage.DefinePrim("/{}".format(prim.GetName()))
+        target.GetReferences().AddReference(prim_stage_id, prim.GetPath())
+        
+        return stage.ExportToString() 
+
+    def show_usd_triggered(self):
         '''
         Show the current graph as JSON text.
+        '''
+        stagectrl = self.editor.stage_ctrl
+        usdstage = stagectrl.stage
+        materials = usdstage.GetPrimAtPath("/MaterialX")
+        print(materials)
+
+        #usdStageText = usdstage.ExportToString()
+        #usdStageText = Sdf.PrimSpec.GetAsText()
+        usdStageText = self.print_prim(materials)
+
+        # Write USD to file
+        if usdStageText:
+            self.show_text_box(usdStageText, 'USD Representation')
+
+    def show_json_triggered(self):
+        '''
+        Show the current USD Stage.
         '''
         doc = self.editor.qx_node_graph.get_current_mx_graph_doc()
 
