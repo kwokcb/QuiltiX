@@ -149,10 +149,19 @@ class GltfQuilitxPlugin():
             show_gltf_text.triggered.connect(self.show_gltf_text_triggered)
             gltfMenu.addAction(show_gltf_text)
 
-            version = 'materialxgltf version: ' + materialxgltf.__version__
-            version_action = QAction(version, self.editor)
-            version_action.setEnabled(False)
-            gltfMenu.addAction(version_action)
+            # Update 'Options' menu
+            self.editor.options_menu.addSeparator()
+            gltfMenu = self.editor.options_menu.addMenu("glTF Options")
+
+            self.bake_textures_option = QAction("Always Bake Textures", self.editor)
+            self.bake_textures_option.setCheckable(True)
+            self.bake_textures_option.setChecked(False)
+            gltfMenu.addAction(self.bake_textures_option)
+
+            #version = 'materialxgltf version: ' + materialxgltf.__version__
+            #version_action = QAction(version, self.editor)
+            #version_action.setEnabled(False)
+            #gltfMenu.addAction(version_action)
 
             # Add glTF Viewer
             self.setup_gltf_viewer_doc()
@@ -167,7 +176,10 @@ class GltfQuilitxPlugin():
             self.editor.view_menu.addAction(self.act_gltf_viewer)
 
             # Override about to show event to update the gltf viewer toggle
-            self.editor.view_menu.aboutToShow.connect(self.custom_on_view_menu_about_to_show) 
+            self.editor.view_menu.aboutToShow.connect(self.custom_on_view_menu_about_to_show)   
+
+            # Turn off auto nodegraph creation
+            self.editor.act_ng_abstraction.setChecked(False)  
 
     def custom_on_view_menu_about_to_show(self):
         self.editor.on_view_menu_showing()
@@ -449,8 +461,13 @@ class GltfQuilitxPlugin():
             translatedCount = mtlx2glTFWriter.translateShaders(doc)
             logger.debug('- Translated shaders: ' + str(translatedCount))
 
+        forceBake = False
+        if self.bake_textures_option.isChecked():
+            logger.debug('--- Forcing baking of textures')
+            forceBake = True
+
         # Perform baking if needed
-        if translatedCount > 0 and options['bakeTextures']:
+        if forceBake or (translatedCount > 0 and options['bakeTextures']):
             logger.debug('- Baking start...')
             bakeResolution = 2048
             bakedFileName = options['bakeFileName']
