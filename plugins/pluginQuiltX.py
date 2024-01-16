@@ -1,3 +1,21 @@
+#
+# "QuiltiXPlus" utilities plug-in for QuiltiX
+#
+# This plug-in adds the following functionality to QuiltiX:
+# - glTF export / import
+#    - glTF Viewer widget
+#    - glTF text preview
+# - MaterialX JSON export / import
+#    - JSON text preview
+# - USD Stage text preview (materials only)
+# 
+# This plug-in requires the following packages to be installed:
+# - materialxgltf : for glTF support
+# - materialxjson : for JSON support
+# - PySide2 : for Qt UI support
+#
+# Contributors(s): Bernard Kwok, Manual Koster
+#
 import os
 import sys
 import logging
@@ -36,18 +54,21 @@ from Qt import QtCore # type: ignore
 from QuiltiX import quiltix
 from QuiltiX.constants import ROOT
 
+logger = logging.getLogger(__name__)
+
 # Usd modules
 from pxr import Usd, UsdLux, Sdf, Tf, UsdGeom,  UsdShade, Gf  # noqa: E402 # type: ignore
 
 # MaterialX and related modules
 import MaterialX as mx
 
+# Check for JSON and glTF package installation
 haveJson = False
 try:
     import materialxjson.core as jsoncore
     haveJson = True
 except ImportError:
-    print("materialxjson module is not installed.")
+    logger.error("materialxjson module is not installed.")
 
 haveGLTF = False
 try:
@@ -55,23 +76,30 @@ try:
     import materialxgltf
     haveGLTF = True
 except ImportError:
-    print("materialxgltf module is not installed.")
+    logger.error("materialxgltf module is not installed.")
 
+# Use to allow access to resources in the package
 import pkg_resources
 
-logger = logging.getLogger(__name__)
 
 class glTFWidget(QDockWidget):
+    '''
+    Description: glTF Viewer widget    
+    '''
+
     def __init__(self, parent=None):
+        '''
+        Description: Sets up a web view and loads in a sample glTF viewer page.
+        '''
         super(glTFWidget, self).__init__(parent)
         
         self.setWindowTitle("glTF Viewer")
 
         self.setFloating(False)
         
-        # Create a web view
+        # Create a web view. 
         self.web_view = QWebEngineView()        
-        self.web_view.setUrl(QtCore.QUrl('https://kwokcb.github.io/MaterialX_Learn/documents/gltfViewer_simple.html'))
+        self.web_view.setUrl(QtCore.QUrl('https://kwokcb.github.io/MaterialX_Learn/documents/sampleViewer.html'))
         # e.g. Set to local host if you want to run a local page
         #self.web_view.setUrl(QtCore.QUrl('http://localhost:8000/gltfViewer_simple.html'))
 
@@ -86,7 +114,12 @@ class glTFWidget(QDockWidget):
         # Set the central widget of the dock widget
         self.setWidget(central_widget)
 
-class GltfQuilitxPlugin():
+class QuiltiXPlusPlugin():
+    '''
+    Description: Plugin for various glTF/USD/MTLX support utilities in QuiltiX
+        Derives from QuiltiXPlugin class.
+    '''
+
     def __init__(self, editor, haveGLTF, haveJson):
         self.editor = editor
 
@@ -229,7 +262,7 @@ class GltfQuilitxPlugin():
         stagectrl = self.editor.stage_ctrl
         usdstage = stagectrl.stage
         materials = usdstage.GetPrimAtPath("/MaterialX")
-        print(materials)
+        # logger.debug(materials)
 
         #usdStageText = usdstage.ExportToString()
         #usdStageText = Sdf.PrimSpec.GetAsText()
@@ -346,17 +379,17 @@ class GltfQuilitxPlugin():
             if not success:
                 logger.error(err)
             else:
-                # Load material file, stipped of any library references
+                # Load material file, stripped of any library references
                 # - Q: Should we attempt to replace usage of "channels" with explicit extracts here 
-                # as OpenUSD does not handle this properly. TBD.
+                # as QuiltiX does not handle this properly. TBD.
                 # - Note: we must strip out the library references as QuiltiX tries to load them in
                 # as includes instea of stripping them out.
                 docString = core.Util.writeMaterialXDocString(doc)
                 doc = mx.createDocument()
                 mx.readFromXmlString(doc, docString)
-                print('---------------------- MaterialX Document ----------------------')
-                print(docString)
-                print('Wrote MaterialX document to file: ' + path + '_stripped.mtlx')
+                #print('---------------------- MaterialX Document ----------------------')
+                #print(docString)
+                logger.info('Wrote MaterialX document to file: ' + path + '_stripped.mtlx')
                 core.Util.writeMaterialXDoc(doc, path + '_stripped.mtlx')
                 
                 self.editor.mx_selection_path = path
@@ -364,7 +397,11 @@ class GltfQuilitxPlugin():
     
     def setup_default_export_options(self, path, bakeFileName, embed_geometry=False):
         '''
-        Set up the default export options for the given path.
+        Set up the default export options for gltf output.
+        Parameters:
+            path (str): path to the gltf file
+            bakeFileName (str): path to the baked file
+            embed_geometry (bool): whether to embed the geometry in the gltf file. Default is False.
         '''
         options = core.MTLX2GLTFOptions()
 
@@ -372,8 +409,11 @@ class GltfQuilitxPlugin():
         options['bakeFileName'] = bakeFileName
 
         if embed_geometry:
+            # By default uses the "MaterialX" shader ball provided as part of
+            # the materialxgltf package for binary export. 
             gltfGeometryFile = pkg_resources.resource_filename('materialxgltf', 'data/shaderBall.gltf')
-            print('> Load glTF geometry file: %s' % mx.FilePath(gltfGeometryFile).getBaseName())        
+            msg = '> Load glTF geometry file: %s' % mx.FilePath(gltfGeometryFile).getBaseName()
+            logger.info(msg)        
             options['geometryFile'] = gltfGeometryFile        
         options['primsPerMaterial'] = True
         options['writeDefaultInputs'] = False
@@ -393,7 +433,7 @@ class GltfQuilitxPlugin():
 
     def export_gltf_triggered(self):
         '''
-        Export the current graph to a glTF file.
+        Export the current graph to a glTF file in binary format (glb)
         '''
         start_path = self.editor.mx_selection_path
         if not start_path:
@@ -407,9 +447,9 @@ class GltfQuilitxPlugin():
         )
         
         # Set up export options
-        bakeFileName = path + '_baked.mtlx'
+        bakeFileName = start_path + '_baked.mtlx'
         options = self.setup_default_export_options(path, bakeFileName, embed_geometry=True)
-        print('Export options:', options)
+        #print('Export options:' + options)
 
         gltf_string = self.convert_graph_to_gltf(options)
         if gltf_string == '{}':
@@ -442,6 +482,17 @@ class GltfQuilitxPlugin():
    
 
     def convert_graph_to_gltf(self, options):
+        '''
+        Convert the current graph to a glTF string.
+        Will perform:
+        - Shader translation if needed (not that only standard surface is supported)
+        - Baking if needed. Note that this writes local files.
+        - Uses the materialgltf package to perform conversion
+
+        Parameters:
+            options (dict): Dictionary of options for the conversion            
+        Returns the glTF string.
+        '''
         doc = self.editor.qx_node_graph.get_current_mx_graph_doc()
 
         mtlx2glTFWriter = core.MTLX2GLTFWriter()
@@ -489,7 +540,9 @@ class GltfQuilitxPlugin():
         return gltfString
 
     def show_gltf_text_triggered(self):
-
+        '''
+        Show the current graph as glTF text popup.
+        '''
         path = self.editor.mx_selection_path
         if not path:
             path = self.editor.geometry_selection_path
@@ -505,14 +558,14 @@ class GltfQuilitxPlugin():
         self.show_text_box(text, 'glTF Representation')
                     
 
-class GltfQuiltix(quiltix.QuiltiXWindow):
+class QuiltixPlus(quiltix.QuiltiXWindow):
     '''
     QuiltiX window with plug-in functionality added
     '''
     def __init__(self, load_style_sheet=True, load_shaderball=True, load_default_graph=True):
         super().__init__(load_style_sheet=True, load_shaderball=True, load_default_graph=True)
 
-        self.plugin = GltfQuilitxPlugin(self, haveGLTF, haveJson)
+        self.plugin = QuiltiXPlusPlugin(self, haveGLTF, haveJson)
 
     
 def launch():
@@ -520,7 +573,7 @@ def launch():
     if not app:
         app = QApplication(sys.argv)
 
-    editor = GltfQuiltix()
+    editor = QuiltixPlus()
     editor.show()
     sys.exit(app.exec_())
 
