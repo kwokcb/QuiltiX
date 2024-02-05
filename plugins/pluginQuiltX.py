@@ -342,7 +342,8 @@ class QuiltiXPlusPlugin():
         if doc:
             logger.info('Loaded JSON file: ' + path)
             self.editor.mx_selection_path = path
-            self.editor.qx_node_graph.load_graph_from_mx_doc(doc, path)
+            self.editor.qx_node_graph.load_graph_from_mx_doc(doc)
+            self.editor.qx_node_graph.mx_file_loaded.emit(path)
 
     def import_gltf_triggered(self):
         '''
@@ -393,7 +394,8 @@ class QuiltiXPlusPlugin():
                 core.Util.writeMaterialXDoc(doc, path + '_stripped.mtlx')
                 
                 self.editor.mx_selection_path = path
-                self.editor.qx_node_graph.load_graph_from_mx_doc(doc, path) 
+                self.editor.qx_node_graph.load_graph_from_mx_doc(doc) 
+                self.editor.qx_node_graph.mx_file_loaded.emit(path)
     
     def setup_default_export_options(self, path, bakeFileName, embed_geometry=False):
         '''
