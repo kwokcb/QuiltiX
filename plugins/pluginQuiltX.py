@@ -99,7 +99,7 @@ class glTFWidget(QDockWidget):
         
         # Create a web view. 
         self.web_view = QWebEngineView()        
-        self.web_view.setUrl(QtCore.QUrl('https://kwokcb.github.io/MaterialX_Learn/documents/sampleViewer.html'))
+        self.web_view.setUrl(QtCore.QUrl('https://materialx.nanmucreative.com/documents/sampleViewer.html'))
         # e.g. Set to local host if you want to run a local page
         #self.web_view.setUrl(QtCore.QUrl('http://localhost:8000/gltfViewer_simple.html'))
 
@@ -132,12 +132,13 @@ class QuiltiXPlusPlugin():
         if not haveGLTF and not haveJson:
             logger.error('Neither materialxjson nor materialxgltf modules are installed. glTF/JSON support will not be available.')
         
-        self.editor.file_menu.addSeparator()
-        gltfMenu = self.editor.file_menu.addMenu("USD")
-        # Show USD Stage . 
-        show_usd_text = QAction("Show USD Stage...", self.editor)
-        show_usd_text.triggered.connect(self.show_usd_triggered)
-        gltfMenu.addAction(show_usd_text)
+        # Show USD Stage -- add here if not added to core
+        showUSDExists = True 
+        if not showUSDExists:
+            self.editor.file_menu.addSeparator()
+            show_usd_text = QAction("Show USD Stage...", self.editor)
+            show_usd_text.triggered.connect(self.show_usd_triggered)
+            self.editor.file_menu.addAction(show_usd_text)
 
         if haveJson:
             # JSON menu items
