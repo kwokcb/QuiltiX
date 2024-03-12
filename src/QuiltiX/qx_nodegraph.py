@@ -747,7 +747,6 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
                 if not graph.is_root:
                     graph.parent_graph.collapse_group_node(graph.node)
 
-
     def load_image_file(self, filepath, xoffset=0, yoffset=0):
         local_pos = self.viewer().mapFromGlobal(QtGui.QCursor.pos())
         pos = self.viewer().mapToScene(local_pos)
