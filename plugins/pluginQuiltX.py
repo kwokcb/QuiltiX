@@ -99,7 +99,9 @@ class glTFWidget(QDockWidget):
         
         # Create a web view. 
         self.web_view = QWebEngineView()        
-        self.web_view.setUrl(QtCore.QUrl('https://materialx.nanmucreative.com/documents/sampleViewer.html'))
+        self.web_view.setUrl(QtCore.QUrl('https://materialx.nanmucreative.com/documents/simpleViewer.html'))
+                #'https://kwokcb.github.io/web_scene_editor/viewer/room_viewer.html'))
+                        
         # e.g. Set to local host if you want to run a local page
         #self.web_view.setUrl(QtCore.QUrl('http://localhost:8000/gltfViewer_simple.html'))
 
