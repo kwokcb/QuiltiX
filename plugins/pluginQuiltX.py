@@ -20,7 +20,18 @@ import os
 import sys
 import logging
 
-from Qt.QtWidgets import (  # type: ignore
+# from Qt.QtWidgets import (  # type: ignore
+#    QApplication,
+#    QAction,
+#    QDockWidget,
+#    QTextBrowser,
+#    QVBoxLayout,
+#    QTextEdit,   
+#    QWidget 
+#) 
+
+from qtpy import QtCore, QtGui, QtWidgets  # type: ignore
+from qtpy.QtWidgets import (  # type: ignore
     QApplication,
     QAction,
     QDockWidget,
@@ -31,9 +42,9 @@ from Qt.QtWidgets import (  # type: ignore
 )
 
 #from PySide2.QtWidgets import QApplication, QWidget
-from PySide2.QtWebEngineWidgets import QWebEngineView  # type: ignore
+#from PySide2.QtWebEngineWidgets import QWebEngineView  # type: ignore
 
-from Qt import QtCore # type: ignore
+#from Qt import QtCore # type: ignore
 #from Qt.QtWidgets import (  # type: ignore
 #    QAction,
 #    QActionGroup,
@@ -98,8 +109,8 @@ class glTFWidget(QDockWidget):
         self.setFloating(False)
         
         # Create a web view. 
-        self.web_view = QWebEngineView()        
-        self.web_view.setUrl(QtCore.QUrl('https://materialx.nanmucreative.com/documents/simpleViewer.html'))
+        self.web_view = None # QWebEngineView()        
+        #self.web_view.setUrl(QtCore.QUrl('https://materialx.nanmucreative.com/documents/simpleViewer.html'))
                 #'https://kwokcb.github.io/web_scene_editor/viewer/room_viewer.html'))
                         
         # e.g. Set to local host if you want to run a local page
@@ -107,7 +118,7 @@ class glTFWidget(QDockWidget):
 
         # Set up the layout
         layout = QVBoxLayout()
-        layout.addWidget(self.web_view)
+        #layout.addWidget(self.web_view)
         
         # Create a central widget to hold the layout
         central_widget = QWidget()
