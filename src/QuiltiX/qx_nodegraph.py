@@ -109,8 +109,8 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
             defs = mx.loadLibraries(library_folders, search_path, self.mx_library_doc)
             searchPathString = search_path.asString()
             logger.debug(f"loaded definitions from {library_path}: {len(defs)} searchPath: {searchPathString}, library folders: {library_folders}" )
-            for mx_def in defs:
-                logger.debug(f"loaded definition file: {mx_def}")
+            #for mx_def in defs:
+            #    logger.debug(f"loaded definition file: {mx_def}")
 
         if self.mx_defs:
             mx_defs = [mx_def for mx_def in self.mx_library_doc.getNodeDefs() if mx_def not in self.mx_defs]

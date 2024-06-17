@@ -145,14 +145,7 @@ class QuiltiXPlusPlugin():
         if not haveGLTF and not haveJson:
             logger.error('Neither materialxjson nor materialxgltf modules are installed. glTF/JSON support will not be available.')
         
-        # Show USD Stage -- add here if not added to core
-        showUSDExists = True 
-        if not showUSDExists:
-            self.editor.file_menu.addSeparator()
-            show_usd_text = QAction("Show USD Stage...", self.editor)
-            show_usd_text.triggered.connect(self.show_usd_triggered)
-            self.editor.file_menu.addAction(show_usd_text)
-
+        haveJson = False
         if haveJson:
             # JSON menu items
             # ----------------------------------------
