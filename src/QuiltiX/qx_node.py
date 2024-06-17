@@ -1,7 +1,7 @@
 import random
 import logging
 
-from Qt import QtCore  # type: ignore
+from qtpy import QtCore, QtGui  # type: ignore
 
 import MaterialX as mx  # type: ignore
 from NodeGraphQt import BaseNode, GroupNode
@@ -73,7 +73,7 @@ class QxNodeBase(BaseNode):
             node_input.color = self._random_color_from_string(str(mx_input.getType()))
 
         for node_output in self.output_ports():
-            mx_output = self.current_mx_def.getActiveInput(node_input.name())
+            mx_output = self.current_mx_def.getActiveOutput(node_output.name())
             node_output.color = self._random_color_from_string(str(mx_output.getType()))
 
 
@@ -624,7 +624,6 @@ class QxPortInputNode(PortInputNode):
             in_port.color = QxNodeBase._random_color_from_string(out_port.view.get_mx_port_type())
             in_port.model.name = name
             in_port.view.name = name
-            in_port.view.multi_connection = False  # refresh tooltip
             text_item = self.view.get_output_text_item(in_port.view)
             text_item.setPlainText(name)
             out_port.model.connected_ports[self.id] = [name]
@@ -754,11 +753,16 @@ class QxPortOutputNode(PortOutputNode):
             self.graph.node.add_output(name, color=in_port.color)
 
     def on_input_disconnected(self, in_port, out_port):
-        if not getattr(self.graph, "is_collapsing", False):
-            self.graph.node.get_output(in_port.name()).clear_connections()
-            self.graph.node.delete_output(in_port.name())
-            self.delete_input(in_port)
-            self.refresh_output_props()
+        if getattr(self.graph, "is_collapsing", False):
+            return
+        
+        if self.graph._viewer._start_port:
+            return  # is in a live connection
+
+        self.graph.node.get_output(in_port.name()).clear_connections()
+        self.graph.node.delete_output(in_port.name())
+        self.delete_input(in_port)
+        self.refresh_output_props()
 
     def refresh_output_props(self):
         todel = [prop for prop in self.model._custom_prop if prop.startswith("Output #")]
@@ -868,6 +872,15 @@ class QxNodeItem(NodeItem):
         del port
         del text
 
+    def mouseDoubleClickEvent(self, event):
+        super(QxNodeItem, self).mouseDoubleClickEvent(event)
+        if self.text_item.textInteractionFlags() & QtCore.Qt.TextSelectableByMouse:
+            cursor = self.text_item.textCursor()
+            cursor.setPosition(0)
+            cursor.movePosition(QtGui.QTextCursor.Right, QtGui.QTextCursor.KeepAnchor, len(self.text_item.toPlainText()))
+            self.text_item.setTextCursor(cursor)
+            return
+
 
 class QxGroupNodeItem(QxNodeItem):
     def __init__(self, name='group', parent=None):
@@ -939,6 +952,11 @@ class QxGroupNodeItem(QxNodeItem):
             for node in self.viewer().graph.all_nodes():
                 if node.id == self.id:
                     return node
+                
+        name_rect = self.text_item.mapRectToItem(self, self.text_item.boundingRect())
+        if name_rect.contains(event.pos()):
+            super(QxGroupNodeItem, self).mouseDoubleClickEvent(event)
+            return
 
         node = get_node_of_node_item()
         if event.button() == QtCore.Qt.LeftButton:

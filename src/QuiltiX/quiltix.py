@@ -5,8 +5,8 @@ import webbrowser
 import logging
 from importlib import metadata
 
-from Qt import QtCore, QtGui, QtWidgets  # type: ignore
-from Qt.QtWidgets import (  # type: ignore
+from qtpy import QtCore, QtGui, QtWidgets  # type: ignore
+from qtpy.QtWidgets import (  # type: ignore
     QAction,
     QActionGroup,
     QMenu,
@@ -22,6 +22,7 @@ from Qt.QtWidgets import (  # type: ignore
     QPushButton,
     QDialogButtonBox,
     QGridLayout,
+    QVBoxLayout,
     QSizePolicy,
     QComboBox,
 )
@@ -160,29 +161,27 @@ class QuiltiXWindow(QMainWindow):
         # endregion Stage Tree
 
         if self.viewer_enabled:
-            data_model = StageView.DefaultDataModel()
-            stage_view = StageView(dataModel=data_model)
-
-            # region Render Settings
-            self.render_settings_widget = self.get_render_settings_widget(stage_view)
-            self.render_settings_dock_widget = QDockWidget()
-            self.render_settings_dock_widget.setWindowTitle("Render Settings")
-            self.render_settings_dock_widget.setWidget(self.render_settings_widget)
-            self.render_settings_dock_widget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-            self.splitDockWidget(self.stage_tree_dock_widget, self.render_settings_dock_widget, QtCore.Qt.Vertical)
-            # endregion Render Settings
-
             # region Stage View
-            self.stage_view_widget = self.get_stage_view_widget(data_model, stage_view)
+            self.stage_view_widget = self.get_stage_view_widget()
             self.stage_view_widget.fileDropped.connect(self.on_view_file_dropped)
             self.stage_view_dock_widget = QDockWidget()
             self.stage_view_dock_widget.setWindowTitle("Viewport")
             self.stage_view_dock_widget.setWidget(self.stage_view_widget)
             self.stage_view_dock_widget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
             self.addDockWidget(QtCore.Qt.TopDockWidgetArea, self.stage_view_dock_widget)
+            # endregion Stage View
+
+            # region Render Settings
+            self.render_settings_widget = self.get_render_settings_widget(self.stage_view_widget.view)
+            self.render_settings_dock_widget = QDockWidget()
+            self.render_settings_dock_widget.setWindowTitle("Render Settings")
+            self.render_settings_dock_widget.setWidget(self.render_settings_widget)
+            self.render_settings_dock_widget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+            self.render_settings_dock_widget.setHidden(True)
+            self.splitDockWidget(self.stage_tree_dock_widget, self.render_settings_dock_widget, QtCore.Qt.Vertical)
+            # endregion Render Settings
 
             self.stage_view_widget.rendererChanged.connect(self.render_settings_widget.on_renderer_changed)
-            # endregion Stage View
 
         # region Properties
         self.properties = PropertiesBinWidget(root_node_graph=self.qx_node_graph)
@@ -219,6 +218,7 @@ class QuiltiXWindow(QMainWindow):
         if self.act_apply_mat.isChecked():
             self.stage_ctrl.apply_first_material_to_all_prims()
         self.stage_tree_widget.refresh_tree()
+        self.hide_node_defs()
 
     def on_node_graph_changed(self, nodegraph):
         if self.act_apply_mat.isChecked():
@@ -227,8 +227,8 @@ class QuiltiXWindow(QMainWindow):
     def get_stage_tree_widget(self):
         return usd_stage_tree.UsdStageTreeWidget()
 
-    def get_stage_view_widget(self, data_model, stage_view):
-        return usd_stage_view.StageViewWidget(data_model, stage_view)
+    def get_stage_view_widget(self):
+        return usd_stage_view.StageViewWidget()
 
     def get_render_settings_widget(self, stage_view):
         return usd_render_settings.RenderSettingsWidget(stage_view)
@@ -296,8 +296,12 @@ class QuiltiXWindow(QMainWindow):
         # endregion Tabs
 
         # region File
-        load_mx_file = QAction("Load MaterialX...", self)
+        load_mx_file = QAction("Load MaterialX file...", self)
         load_mx_file.triggered.connect(self.load_mx_file_triggered)
+        self.file_menu.addAction(load_mx_file)
+
+        load_mx_file = QAction("Load MaterialX data...", self)
+        load_mx_file.triggered.connect(self.load_mx_data_triggered)
         self.file_menu.addAction(load_mx_file)
 
         save_mx_file = QAction("Save MaterialX...", self)
@@ -362,6 +366,12 @@ class QuiltiXWindow(QMainWindow):
         self.act_ng_abstraction.setCheckable(True)
         self.act_ng_abstraction.setChecked(True)
         self.options_menu.addAction(self.act_ng_abstraction)
+
+        self.act_hide_defs = QAction("Hide nodegraph definitions", self)
+        self.act_hide_defs.setCheckable(True)
+        self.act_hide_defs.setChecked(True)
+        self.act_hide_defs.toggled.connect(self.hide_node_defs)
+        self.options_menu.addAction(self.act_hide_defs)
 
         self.act_validate = QAction("Validate MaterialX document...", self)
         self.act_validate.triggered.connect(self.validate)
@@ -508,6 +518,27 @@ class QuiltiXWindow(QMainWindow):
 
         self.mx_selection_path = path
         self.qx_node_graph.load_graph_from_mx_file(path)
+
+    def load_mx_data_triggered(self):
+        dlg = QDialog()
+        dlg.setParent(self, QtCore.Qt.Window)
+        dlg.setWindowTitle("MaterialX XML Data")
+        dlg.lo_main = QVBoxLayout(dlg)
+        dlg.te_text = QTextEdit()
+        dlg.bb_main = QDialogButtonBox()
+        dlg.bb_main.addButton("Load", QDialogButtonBox.AcceptRole)
+        dlg.bb_main.addButton("Cancel", QDialogButtonBox.RejectRole)
+        dlg.lo_main.addWidget(dlg.te_text)
+        dlg.lo_main.addWidget(dlg.bb_main)
+        dlg.bb_main.accepted.connect(dlg.accept)
+        dlg.bb_main.rejected.connect(dlg.reject)
+        dlg.resize(1000, 600)
+        result = dlg.exec_()
+        if result == 0:
+            return
+
+        xml_str = dlg.te_text.toPlainText()
+        self.qx_node_graph.load_graph_from_mx_data(xml_str)
 
     def save_mx_file_triggered(self):
         start_path = self.mx_selection_path
@@ -698,8 +729,18 @@ class QuiltiXWindow(QMainWindow):
         mx_stdlib_paths = mx_node.get_mx_stdlib_paths()
         self.qx_node_graph.load_mx_libraries(mx_stdlib_paths)
         mx_custom_lib_paths = mx_node.get_mx_custom_lib_paths()
-        self.qx_node_graph.load_mx_libraries(mx_custom_lib_paths, library_folders=[])
+        if mx_custom_lib_paths:
+            self.qx_node_graph.load_mx_libraries(mx_custom_lib_paths, library_folders=[])
+
         self.qx_node_graph.register_node(qx_node.QxGroupNode)
+
+    def hide_node_defs(self, hide=None):
+        if hide is None:
+            hide = self.act_hide_defs.isChecked()
+
+        for node in self.qx_node_graph.all_nodes():
+            if node.get_property("nodedef"):
+                node.view.setVisible(not hide)
 
     def validate(self, doc=None, popup=True):
         result = self.qx_node_graph.validate_mtlx_doc(doc)
@@ -761,8 +802,14 @@ class QuiltiXWindow(QMainWindow):
 
 
 class SaveDefinitionDialog(QDialog):
-
     signal_saved_def = QtCore.Signal(object)
+
+    def __init__(self, node, mx_library_doc, parent):
+        super(SaveDefinitionDialog, self).__init__(parent)
+        self.node = node
+        self.mx_library_doc = mx_library_doc
+        self.setup_definition_dict()
+        self.setup_ui()
 
     def build_category(self, mx_def):
         category_string = 'NODE_' + mx_def.getNodeString() + '_VERSION_' + mx_def.getVersionString()
@@ -781,54 +828,62 @@ class SaveDefinitionDialog(QDialog):
             self.nodegroups.add(mx_def.getNodeGroup())
         self.nodegroups = sorted(self.nodegroups, key=lambda x: x.lower())
 
-    def __init__(self, node, mx_library_doc, parent):
-        super(SaveDefinitionDialog, self).__init__(parent)
-        self.node = node
-        self.mx_library_doc = mx_library_doc
-        self.setup_definition_dict()
-        self.setup_ui()
-
     def category_exists(self, mx_def):
         return self.build_category(mx_def) in self.categories
 
     def setup_ui(self):
         self.setWindowTitle("Save Node Definition")
 
+        self.l_groupHelp = HelpLabel(self, "The Node Group defines in which menu of the tabmenu the node definition will appear.")
         self.l_nodegroup = QLabel("Node Group:")
         self.e_nodegroup = QComboBox()
         self.e_nodegroup.addItems(self.nodegroups)
+        self.l_categoryHelp = HelpLabel(self, "The Category defines the name in the tabmenu of the new node definition.")
         self.l_category = QLabel("Category:")
         self.e_category = QLineEdit(self.node.NODE_NAME)
         self.l_path = QLabel("Save Path:   ")
-        path = os.path.join(os.environ["USERPROFILE"], "custom_mtlx_defs", self.node.NODE_NAME+ ".mtlx")
+        path = os.path.join(os.path.expanduser("~"), "custom_mtlx_defs", self.node.NODE_NAME + ".mtlx")
         self.e_path = QLineEdit(path)
         self.b_path = QPushButton("...")
         self.bb_main = QDialogButtonBox()
         self.bb_main.addButton("Save", QDialogButtonBox.AcceptRole)
         self.bb_main.addButton("Cancel", QDialogButtonBox.RejectRole)
 
+        self.b_path.pressed.connect(self.explore_save_path_triggered)
+        
         self.bb_main.accepted.connect(self.on_accepted)
         self.bb_main.rejected.connect(self.reject)
 
         self.e_nodegroup.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         self.lo_main = QGridLayout(self)
-        self.lo_main.addWidget(self.l_nodegroup, 0, 0)
-        self.lo_main.addWidget(self.e_nodegroup, 0, 1, 1, 3)
-        self.lo_main.addWidget(self.l_category, 1, 0)
-        self.lo_main.addWidget(self.e_category, 1, 1, 1, 3)
-        self.lo_main.addWidget(self.l_path, 2, 0)
-        self.lo_main.addWidget(self.e_path, 2, 1, 1, 2)
-        self.lo_main.addWidget(self.b_path, 2, 3)
+        self.lo_main.addWidget(self.l_groupHelp, 0, 0)
+        self.lo_main.addWidget(self.l_nodegroup, 0, 1)
+        self.lo_main.addWidget(self.e_nodegroup, 0, 2, 1, 3)
+        self.lo_main.addWidget(self.l_categoryHelp, 1, 0)
+        self.lo_main.addWidget(self.l_category, 1, 1)
+        self.lo_main.addWidget(self.e_category, 1, 2, 1, 3)
+        self.lo_main.addWidget(self.l_path, 2, 1)
+        self.lo_main.addWidget(self.e_path, 2, 2, 1, 2)
+        self.lo_main.addWidget(self.b_path, 2, 4)
         self.lo_main.setRowStretch(3, 100)
-        self.lo_main.setColumnStretch(1, 100)
-        self.lo_main.addWidget(self.bb_main, 4, 2, 1, 2)
+        self.lo_main.setColumnStretch(2, 100)
+        self.lo_main.addWidget(self.bb_main, 4, 3, 1, 2)
         self.e_category.setFocus()
+
+    def explore_save_path_triggered(self):
+        start_path = self.e_path.text()
+        path = QFileDialog.getSaveFileName(self, "Output MaterialX Definition path", start_path, "MaterialX Definition (*.mtlx)")[0]
+
+        if not path:
+            return
+        
+        self.e_path.setText(path)
 
     def sizeHint(self):
         return QtCore.QSize(580, 175)
 
-    def on_accepted(self):        
+    def on_accepted(self):
 
         # get nodegroup from e_nodegroup QComboBox
         nodegroup = self.e_nodegroup.currentText()
@@ -924,6 +979,27 @@ class SaveDefinitionDialog(QDialog):
 
         self.accept()
         self.signal_saved_def.emit(outpath)
+
+
+class HelpLabel(QLabel):
+
+    signalEntered = QtCore.Signal(object)
+
+    def __init__(self, parent, toolTipStr):
+        super(HelpLabel, self).__init__()
+        self.parent = parent
+        self.toolTipStr = toolTipStr
+
+        iconPath = os.path.join(ROOT, "resources", "icons", "help.png")
+        pixmap = QtGui.QIcon(iconPath).pixmap(20, 20)
+        self.setPixmap(pixmap)
+        self.setMouseTracking(True)
+
+    def enterEvent(self, event):
+        self.signalEntered.emit(self)
+
+    def mouseMoveEvent(self, event):
+        QtWidgets.QToolTip.showText(self.mapToGlobal(self.rect().center()), self.toolTipStr)
 
 
 def launch():

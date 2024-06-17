@@ -2,7 +2,7 @@ import os
 import pathlib
 import logging
 
-from Qt import QtCore # type: ignore
+from qtpy import QtCore # type: ignore
 
 from pxr import Usd, UsdLux, Sdf, Tf, UsdGeom,  UsdShade, Gf  # noqa: E402 # type: ignore
 from pxr.Usdviewq._usdviewq import Utils # type: ignore
@@ -155,7 +155,11 @@ class MxStageController(QtCore.QObject):
         
         if qx_node.type_ == "Other.QxGroupNode":
             ng_name = qx_node.name()
-            in_port_node = qx_node.get_sub_graph().get_input_port_nodes()[0]
+            sub_graph = qx_node.get_sub_graph()
+            if not sub_graph:
+                return
+
+            in_port_node = sub_graph.get_input_port_nodes()[0]
             out_port = in_port_node.get_output(property_name)
             cports = out_port.connected_ports()
             if not cports:
@@ -164,7 +168,7 @@ class MxStageController(QtCore.QObject):
             mx_stage_path = f"/MaterialX/NodeGraphs/{ng_name}/" + cports[0].node().name()
             property_name = cports[0].name()
             prim = self.stage.GetPrimAtPath(mx_stage_path)
-        elif qx_node.current_mx_def.getNodeGroup() in ["material", "pbr"]:
+        elif qx_node.current_mx_def.getNodeGroup() in ["material", "pbr", "shader"]:
             mat_prim = self.stage.GetPrimAtPath("/MaterialX/Materials")
             prim = mat_prim.GetChildren()[0]
             mx_stage_path = prim.GetPath().pathString
