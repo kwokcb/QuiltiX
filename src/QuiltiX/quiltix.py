@@ -3,6 +3,7 @@ import sys
 import subprocess
 import webbrowser
 import logging
+import importlib.util
 from importlib import metadata
 
 from qtpy import QtCore, QtGui, QtWidgets  # type: ignore
@@ -46,6 +47,10 @@ logging.basicConfig()
 logging.root.setLevel("DEBUG")
 logger = logging.getLogger(__name__)
 
+class QuiltiXPluginInfo():
+    def __init__(self):
+        self.id = ""
+        self.plugin = None
 
 class QuiltiXWindow(QMainWindow):
     def __init__(self, load_style_sheet=True, load_shaderball=True, load_default_graph=True):
@@ -63,6 +68,14 @@ class QuiltiXWindow(QMainWindow):
         self.setWindowIcon(quiltix_icon)
         self.init_ui()
         self.init_menu_bar()
+
+        self.plugins = []
+        plugin_roots = [os.path.join(ROOT, 'plugins'), os.getenv("QUILTIX_PLUGIN_FOLDER", "")]
+        for plugin_folder in plugin_roots:
+            if os.path.exists(plugin_folder):
+                absolute_plugin_folder = os.path.abspath(plugin_folder)
+                logger.debug(f"Loading plugins from {absolute_plugin_folder}...")                
+                self.load_and_install_plugins(plugin_folder)
 
         if load_style_sheet:
             self.loadStylesheet()
@@ -83,6 +96,46 @@ class QuiltiXWindow(QMainWindow):
         except metadata.PackageNotFoundError:
             logger.warning("Failed to get version for QuiltiX. QuiltiX is not available as package.")
             return ""
+
+    def load_and_install_plugins(self, plugin_folder):
+        if not os.path.isdir(plugin_folder):
+            logger.warning(f"Plugin folder {plugin_folder} not found.")
+            return
+        
+        # Get the list of all subfolders in the plugin_folder
+        for entry in os.listdir(plugin_folder):
+            entry_path = os.path.join(plugin_folder, entry)
+
+            if os.path.isdir(entry_path):
+                # Check for the presence of plugin.py in the subfolder
+                plugin_file = os.path.join(entry_path, 'plugin.py')
+                if os.path.isfile(plugin_file):
+                    module_name = f"{entry}.plugin"
+
+                    # Dynamically import the module
+                    spec = importlib.util.spec_from_file_location(module_name, plugin_file)
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+
+                    # Check if the module has an installPlugin function
+                    if hasattr(module, "installPlugin"):                                                
+
+                        # Call the installPlugin function
+                        pluginInfo = QuiltiXPluginInfo()
+                        module.installPlugin(self, ROOT, pluginInfo)
+                        if pluginInfo.id and pluginInfo.plugin:
+                            pluginExists = None
+                            for installed_plugin in self.plugins:
+                                if installed_plugin.id == pluginInfo.identifier:
+                                    pluginExists = installed_plugin
+                                    break   
+                            if pluginExists:
+                                logger.warning(f"Plugin with id {pluginInfo.identifier} already installed.")
+                            else:
+                                self.plugins.append(pluginInfo)
+                                logger.debug(f"Installed plugin {pluginInfo.id} from {plugin_file}.")
+                    else:
+                        logger.warning(f"No installPlugin function found in {plugin_file}.")
 
     def load_default_graph(self):
         mx_file = os.path.join(

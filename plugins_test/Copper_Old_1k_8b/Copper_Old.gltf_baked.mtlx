@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<materialx version="1.38">
+  <nodegraph name="NG_baked" colorspace="srgb_texture">
+    <image name="base_color_baked" type="color3">
+      <input name="file" type="filename" value="Copper_Old_gltf_pbr_base_color.png" />
+    </image>
+    <output name="base_color_output" type="color3" nodename="base_color_baked" />
+    <image name="roughness_baked" type="float">
+      <input name="file" type="filename" value="Copper_Old_gltf_pbr_roughness.png" />
+    </image>
+    <output name="roughness_output" type="float" nodename="roughness_baked" />
+  </nodegraph>
+  <gltf_pbr name="SR_Copper_Old_baked" type="surfaceshader">
+    <input name="base_color" type="color3" output="base_color_output" nodegraph="NG_baked" />
+    <input name="roughness" type="float" output="roughness_output" nodegraph="NG_baked" />
+    <input name="clearcoat_roughness" type="float" value="0.0980392" />
+  </gltf_pbr>
+  <surfacematerial name="Copper_Old_baked" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="SR_Copper_Old_baked" />
+  </surfacematerial>
+</materialx>
