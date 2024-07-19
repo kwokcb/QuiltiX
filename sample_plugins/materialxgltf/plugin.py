@@ -39,8 +39,35 @@ try:
 except ImportError:
     logger.error("materialxgltf module is not installed.")
 
+# Optional syntax highlighting if pygments is installed
+have_highliting = True
+try:
+    from pygments import highlight
+    from pygments.lexers import JsonLexer
+    from pygments.formatters import HtmlFormatter
+except ImportError:
+    have_highliting = False
+
 # Use to allow access to resources in the package
 import pkg_resources
+
+class GLTFHighlighter:
+    def __init__(self):
+        self.lexer = JsonLexer()
+        # We don't add line numbers since this get's copied with
+        # copy-paste.
+        self.formatter = HtmlFormatter(linenos=False, style='github-dark')
+
+    def highlight(self, text):
+        highlighted_html = highlight(text, self.lexer, self.formatter)
+        styles = (
+            f"<style>"
+            f"{self.formatter.get_style_defs('.highlight')}"
+            f"pre {{ line-height: 1.0; margin: 0; }}"
+            f"</style>"
+        )
+        full_html = f"<html><head>{styles}</head><body>{highlighted_html}</body></html>"     
+        return full_html
 
 class glTFWidget(QDockWidget):
     '''
@@ -95,15 +122,15 @@ class QuiltiX_glTF_serializer():
         editor.file_menu.addSeparator()
         gltfMenu = self.editor.file_menu.addMenu("glTF")
 
-        # Export menu item
-        export_gltf = QAction("Export to glTF...", )
-        export_gltf.triggered.connect(self.export_gltf_triggered)
-        gltfMenu.addAction(export_gltf)
+        # Load menu item
+        import_gltf_item = QAction("Load glTF...", editor)
+        import_gltf_item.triggered.connect(self.import_gltf_triggered)
+        gltfMenu.addAction(import_gltf_item)
 
-        # Import menu item
-        import_gltf = QAction("Import from glTF...", editor)
-        import_gltf.triggered.connect(self.import_gltf_triggered)
-        gltfMenu.addAction(import_gltf)
+        # Save menu item
+        export_gltf_item = QAction("Save glTF...", )
+        export_gltf_item.triggered.connect(self.export_gltf_triggered)
+        gltfMenu.addAction(export_gltf_item)
 
         # Show glTF text. Does most of export, except does not write to file
         show_gltf_text = QAction("Show as glTF...", editor)
@@ -111,6 +138,7 @@ class QuiltiX_glTF_serializer():
         gltfMenu.addAction(show_gltf_text)
 
         # Update 'Options' menu
+        #########################################
         editor.options_menu.addSeparator()
         gltfMenu = editor.options_menu.addMenu("glTF Options")
 
@@ -140,7 +168,7 @@ class QuiltiX_glTF_serializer():
         editor.view_menu.aboutToShow.connect(self.custom_on_view_menu_about_to_show)   
 
         # Turn off auto nodegraph creation
-        editor.act_ng_abstraction.setChecked(False)  
+        #editor.act_ng_abstraction.setChecked(False)  
 
     def custom_on_view_menu_about_to_show(self):
         self.editor.on_view_menu_showing()
@@ -161,7 +189,13 @@ class QuiltiX_glTF_serializer():
         Show a text box with the given text.
         '''
         te_text = QTextEdit()
-        te_text.setText(text)
+
+        if have_highliting:
+            jsonHighlighter = GLTFHighlighter()
+            highlighted_html = jsonHighlighter.highlight(text)
+            te_text.setHtml(highlighted_html)
+        else:
+            te_text.setText(text)
         te_text.setReadOnly(True)
         te_text.setParent(self.editor, QtCore.Qt.Window)
         te_text.setWindowTitle(title)
@@ -204,21 +238,14 @@ class QuiltiX_glTF_serializer():
                 logger.error(err)
             else:
                 # Load material file, stripped of any library references
-                # - Q: Should we attempt to replace usage of "channels" with explicit extracts here 
-                # as QuiltiX does not handle this properly. TBD.
                 # - Note: we must strip out the library references as QuiltiX tries to load them in
-                # as includes instea of stripping them out.
+                # as includes instead of stripping them out.
                 docString = core.Util.writeMaterialXDocString(doc)
                 doc = mx.createDocument()
                 mx.readFromXmlString(doc, docString)
                 #print('---------------------- MaterialX Document ----------------------')
-                #print(docString)
-                logger.info('Wrote MaterialX document to file: ' + path + '_stripped.mtlx')
-                core.Util.writeMaterialXDoc(doc, path + '_stripped.mtlx')
-                
-                self.editor.mx_selection_path = path
-                self.editor.qx_node_graph.load_graph_from_mx_doc(doc) 
-                self.editor.qx_node_graph.mx_file_loaded.emit(path)
+                #print(docString)                
+                self.editor.qx_node_graph.load_graph_from_mx_data(docString)                
     
     def setup_default_export_options(self, path, bakeFileName, embed_geometry=False):
         '''
@@ -244,6 +271,7 @@ class QuiltiX_glTF_serializer():
         options['writeDefaultInputs'] = False
         options['translateShaders'] = True
         options['bakeTextures'] = True
+        options['addExtractNodes'] = True
 
         searchPath = mx.getDefaultDataSearchPath()
         if not mx.FilePath(path).isAbsolute():
@@ -274,9 +302,8 @@ class QuiltiX_glTF_serializer():
         # Set up export options
         bakeFileName = start_path + '_baked.mtlx'
         options = self.setup_default_export_options(path, bakeFileName, embed_geometry=True)
-        #print('Export options:' + options)
-
         gltf_string = self.convert_graph_to_gltf(options)
+
         if gltf_string == '{}':
             return
 
@@ -318,7 +345,13 @@ class QuiltiX_glTF_serializer():
             options (dict): Dictionary of options for the conversion            
         Returns the glTF string.
         '''
+        # Disable auto nodegraph creation during
+        ng_abstraction = self.editor.act_ng_abstraction.isChecked()
+        self.editor.act_ng_abstraction.setChecked(False)  
+
         doc = self.editor.qx_node_graph.get_current_mx_graph_doc()
+        
+        self.editor.act_ng_abstraction.setChecked(ng_abstraction)
 
         mtlx2glTFWriter = core.MTLX2GLTFWriter()
         mtlx2glTFWriter.setOptions(options)
@@ -380,7 +413,7 @@ class QuiltiX_glTF_serializer():
 
         logger.debug('Show glTF text triggered. Path:' + path + '. bakeFileName: ' + bakeFileName)
 
-        # Convert and display the text        
+        # Convert and display the text                
         text = self.convert_graph_to_gltf(options)
         self.show_text_box(text, 'glTF Representation')
                     
