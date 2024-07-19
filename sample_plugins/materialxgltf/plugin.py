@@ -120,32 +120,32 @@ class QuiltiX_glTF_serializer():
         # Update 'File' menu
         #########################################
         editor.file_menu.addSeparator()
-        gltfMenu = self.editor.file_menu.addMenu("glTF")
+        gltfMenu1 = self.editor.file_menu.addMenu("glTF")
 
         # Load menu item
         import_gltf_item = QAction("Load glTF...", editor)
         import_gltf_item.triggered.connect(self.import_gltf_triggered)
-        gltfMenu.addAction(import_gltf_item)
+        gltfMenu1.addAction(import_gltf_item)
 
         # Save menu item
-        export_gltf_item = QAction("Save glTF...", )
+        export_gltf_item = QAction("Save glTF...", editor)
         export_gltf_item.triggered.connect(self.export_gltf_triggered)
-        gltfMenu.addAction(export_gltf_item)
+        gltfMenu1.addAction(export_gltf_item)
 
         # Show glTF text. Does most of export, except does not write to file
         show_gltf_text = QAction("Show as glTF...", editor)
         show_gltf_text.triggered.connect(self.show_gltf_text_triggered)
-        gltfMenu.addAction(show_gltf_text)
+        gltfMenu1.addAction(show_gltf_text)
 
         # Update 'Options' menu
         #########################################
         editor.options_menu.addSeparator()
-        gltfMenu = editor.options_menu.addMenu("glTF Options")
+        gltfMenu2 = editor.options_menu.addMenu("glTF Options")
 
         self.bake_textures_option = QAction("Always Bake Textures", editor)
         self.bake_textures_option.setCheckable(True)
         self.bake_textures_option.setChecked(False)
-        gltfMenu.addAction(self.bake_textures_option)
+        gltfMenu2.addAction(self.bake_textures_option)
 
         #version = 'materialxgltf version: ' + materialxgltf.__version__
         #version_action = QAction(version, self.editor)
