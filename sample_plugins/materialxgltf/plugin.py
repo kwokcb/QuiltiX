@@ -81,36 +81,40 @@ class QuiltiX_glTF_serializer():
     glTF serializer for MaterialX
     '''
 
-    def __init__(self, editor):
+    def __init__(self, editor, root):
+        '''
+        Initialize the glTF serializer.
+        '''
         self.editor = editor
+        self.root = root
         
         # glTF menu items
         # ----------------------------------------
         # Update 'File' menu
         #########################################
-        self.editor.file_menu.addSeparator()
+        editor.file_menu.addSeparator()
         gltfMenu = self.editor.file_menu.addMenu("glTF")
 
         # Export menu item
-        export_gltf = QAction("Export to glTF...", self.editor)
+        export_gltf = QAction("Export to glTF...", )
         export_gltf.triggered.connect(self.export_gltf_triggered)
         gltfMenu.addAction(export_gltf)
 
         # Import menu item
-        import_gltf = QAction("Import from glTF...", self.editor)
+        import_gltf = QAction("Import from glTF...", editor)
         import_gltf.triggered.connect(self.import_gltf_triggered)
         gltfMenu.addAction(import_gltf)
 
         # Show glTF text. Does most of export, except does not write to file
-        show_gltf_text = QAction("Show as glTF...", self.editor)
+        show_gltf_text = QAction("Show as glTF...", editor)
         show_gltf_text.triggered.connect(self.show_gltf_text_triggered)
         gltfMenu.addAction(show_gltf_text)
 
         # Update 'Options' menu
-        self.editor.options_menu.addSeparator()
-        gltfMenu = self.editor.options_menu.addMenu("glTF Options")
+        editor.options_menu.addSeparator()
+        gltfMenu = editor.options_menu.addMenu("glTF Options")
 
-        self.bake_textures_option = QAction("Always Bake Textures", self.editor)
+        self.bake_textures_option = QAction("Always Bake Textures", editor)
         self.bake_textures_option.setCheckable(True)
         self.bake_textures_option.setChecked(False)
         gltfMenu.addAction(self.bake_textures_option)
@@ -126,17 +130,17 @@ class QuiltiX_glTF_serializer():
         # Update 'View' menu
         #########################################
         # Add viewer toggle
-        self.act_gltf_viewer = QAction("glTF Viewer", self.editor)
+        self.act_gltf_viewer = QAction("glTF Viewer", editor)
         self.act_gltf_viewer.setCheckable(True)
         self.act_gltf_viewer.toggled.connect(self.on_gltf_viewer_toggled)
-        self.editor.view_menu.addSeparator()
-        self.editor.view_menu.addAction(self.act_gltf_viewer)
+        editor.view_menu.addSeparator()
+        editor.view_menu.addAction(self.act_gltf_viewer)
 
         # Override about to show event to update the gltf viewer toggle
-        self.editor.view_menu.aboutToShow.connect(self.custom_on_view_menu_about_to_show)   
+        editor.view_menu.aboutToShow.connect(self.custom_on_view_menu_about_to_show)   
 
         # Turn off auto nodegraph creation
-        self.editor.act_ng_abstraction.setChecked(False)  
+        editor.act_ng_abstraction.setChecked(False)  
 
     def custom_on_view_menu_about_to_show(self):
         self.editor.on_view_menu_showing()
@@ -373,17 +377,22 @@ class QuiltiX_glTF_serializer():
         # Setup export options
         bakeFileName = path + '/temp_baked.mtlx'
         options = self.setup_default_export_options(path, bakeFileName, embed_geometry=False)
-    
-        # Convert and display the text
+
+        logger.debug('Show glTF text triggered. Path:' + path + '. bakeFileName: ' + bakeFileName)
+
+        # Convert and display the text        
         text = self.convert_graph_to_gltf(options)
         self.show_text_box(text, 'glTF Representation')
                     
 @qx_plugin.hookimpl
 def after_ui_init(editor: "quiltix.QuiltiXWindow"):
-    editor.json_serializer = QuiltiX_glTF_serializer(editor, constants.ROOT)
+    logger.debug("Adding MaterialX glTF serializer")
+    editor.gltf_serializer = QuiltiX_glTF_serializer(editor, constants.ROOT)
 
 def plugin_name() -> str:
-    return "MaterialX glTF Serializer"
+    if haveGLTF:
+        return "MaterialX glTF Serializer"
+    return ""
 
 def is_valid() -> bool:
     return haveGLTF
