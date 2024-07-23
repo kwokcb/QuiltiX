@@ -237,15 +237,20 @@ class QuiltiX_glTF_serializer():
             if not success:
                 logger.error(err)
             else:
-                # Load material file, stripped of any library references
-                # - Note: we must strip out the library references as QuiltiX tries to load them in
-                # as includes instead of stripping them out.
+                # Load material file
                 docString = core.Util.writeMaterialXDocString(doc)
                 doc = mx.createDocument()
                 mx.readFromXmlString(doc, docString)
-                #print('---------------------- MaterialX Document ----------------------')
-                #print(docString)                
-                self.editor.qx_node_graph.load_graph_from_mx_data(docString)                
+
+                # Auto ng creation causes issues. Turn off on import
+                ng_abstraction = self.editor.act_ng_abstraction.isChecked()
+                self.editor.act_ng_abstraction.setChecked(False)  
+
+                self.editor.mx_selection_path = path
+                self.editor.qx_node_graph.load_graph_from_mx_doc(doc)
+                self.editor.qx_node_graph.mx_file_loaded.emit(path)
+
+                self.editor.act_ng_abstraction.setChecked(ng_abstraction)
     
     def setup_default_export_options(self, path, bakeFileName, embed_geometry=False):
         '''
