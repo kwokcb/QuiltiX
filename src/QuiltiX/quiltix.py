@@ -6,12 +6,11 @@ import sys
 import webbrowser
 from importlib import metadata
 
-# Setup plugin manager here before we import a lot of the modules
-from QuiltiX import qx_plugin
-
 logging.basicConfig()
 logging.root.setLevel("DEBUG")
-logger = logging.getLogger(__name__)
+
+# Setup plugin manager here before we import a lot of the modules
+from QuiltiX import qx_plugin
 
 plugin_manager = qx_plugin.QuiltiXPluginManager("QuiltiX")
 plugin_manager.load_plugins_from_environment_variable()
@@ -51,6 +50,8 @@ from QuiltiX import mx_node, qx_node, usd_render_settings, usd_stage, usd_stage_
 from QuiltiX.constants import ROOT
 from QuiltiX.qx_node_property import PropertiesBinWidget
 from QuiltiX.qx_nodegraph import QxNodeGraph
+
+logger = logging.getLogger(__name__)
 
 class QuiltiXWindow(QMainWindow):
     def __init__(self, load_style_sheet=True, load_shaderball=True, load_default_graph=True):
