@@ -1,4 +1,6 @@
-# Sample plug-in for QuiltiX which adds import, export, and preview functionality for MaterialX in JSON format
+'''
+@brief Sample plug-in for QuiltiX which adds import, export, and preview functionality for MaterialX in JSON format
+'''
 
 import logging
 import os
@@ -25,7 +27,6 @@ from qtpy.QtWidgets import (  # type: ignore
 from QuiltiX import constants, qx_plugin
 from QuiltiX.constants import ROOT
 
-logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 
 # MaterialX and related modules
@@ -73,7 +74,6 @@ class glTFWidget(QDockWidget):
     '''
     Description: glTF Viewer widget    
     '''
-
     def __init__(self, parent=None):
         '''
         Description: Sets up a web view and loads in a sample glTF viewer page.
@@ -105,12 +105,18 @@ class glTFWidget(QDockWidget):
 
 class QuiltiX_glTF_serializer():
     '''
-    glTF serializer for MaterialX
+    @brief glTF serializer for MaterialX
     '''
 
-    def __init__(self, editor, root):
+    def __init__(self, editor, root) -> None:
         '''
-        Initialize the glTF serializer.
+        Initialize the plugin. Adds in:
+        - Menu items for loading and saving glTF files
+        - Menu items for setting options for glTF export
+        - Menu item for showing the current graph as glTF text
+
+        @param editor: The QuiltiX editor
+        @param root: The root path of QuitiX        
         '''
         self.editor = editor
         self.root = root
@@ -167,26 +173,32 @@ class QuiltiX_glTF_serializer():
         # Override about to show event to update the gltf viewer toggle
         editor.view_menu.aboutToShow.connect(self.custom_on_view_menu_about_to_show)   
 
-        # Turn off auto nodegraph creation
-        #editor.act_ng_abstraction.setChecked(False)  
-
     def custom_on_view_menu_about_to_show(self):
+        '''
+        Custom about to show event for the view menu. Updates the glTF viewer toggle.
+        '''
         self.editor.on_view_menu_showing()
         self.act_gltf_viewer.setChecked(self.web_dock_widget.isVisible())
 
-    def on_gltf_viewer_toggled(self, checked):
+    def on_gltf_viewer_toggled(self, checked) -> None:
+        '''
+        Toggle the glTF viewer dock widget.
+        '''
         self.web_dock_widget.setVisible(checked)
         
-    def setup_gltf_viewer_doc(self):
-
+    def setup_gltf_viewer_doc(self) -> None:
+        '''
+        Set up the glTF viewer dock widget.
+        '''
         self.web_dock_widget = glTFWidget(self.editor)
         self.editor.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.web_dock_widget)        
 
-
     ## Core utilities
-    def show_text_box(self, text, title=""):
+    def show_text_box(self, text, title="") -> None:
         '''
         Show a text box with the given text.
+        @param text: The text to show
+        @param title: The title of the text box. Default is empty string.        
         '''
         te_text = QTextEdit()
 
@@ -202,7 +214,7 @@ class QuiltiX_glTF_serializer():
         te_text.resize(1000, 800)
         te_text.show()
 
-    def import_gltf_triggered(self):
+    def import_gltf_triggered(self) -> None:
         '''
         Import a glTF file into the current graph.
         '''
@@ -221,6 +233,10 @@ class QuiltiX_glTF_serializer():
             logger.error('Cannot find input file: ' + path)
             return
 
+        # Setup defaults for glTF import and create the MaterialX document
+        # - Do not create assignments
+        # - Do not add all inputs
+        # - Add extract nodes. Only required for pre 1.39 MaterialX
         options = core.GLTF2MtlxOptions()
         options['createAssignments'] = False   
         options['addAllInputs'] = False
@@ -228,6 +244,7 @@ class QuiltiX_glTF_serializer():
         gltf2MtlxReader = core.GLTF2MtlxReader()
         gltf2MtlxReader.setOptions(options)
         doc = gltf2MtlxReader.convert(path)
+
         success = True
         if not doc:
             success  = False
@@ -237,12 +254,12 @@ class QuiltiX_glTF_serializer():
             if not success:
                 logger.error(err)
             else:
-                # Load material file
+                # Extract out the appropriate data from the original MaterialX document
                 docString = core.Util.writeMaterialXDocString(doc)
                 doc = mx.createDocument()
                 mx.readFromXmlString(doc, docString)
 
-                # Auto ng creation causes issues. Turn off on import
+                # Auto ng creation can cause issues for nodes with multiple outputs. Turn off on import
                 ng_abstraction = self.editor.act_ng_abstraction.isChecked()
                 self.editor.act_ng_abstraction.setChecked(False)  
 
@@ -252,30 +269,32 @@ class QuiltiX_glTF_serializer():
 
                 self.editor.act_ng_abstraction.setChecked(ng_abstraction)
     
-    def setup_default_export_options(self, path, bakeFileName, embed_geometry=False):
+    def setup_default_export_options(self, path, bakeFileName, embed_geometry=False) -> dict:
         '''
         Set up the default export options for gltf output.
-        Parameters:
-            path (str): path to the gltf file
-            bakeFileName (str): path to the baked file
-            embed_geometry (bool): whether to embed the geometry in the gltf file. Default is False.
+        @param path (str): path to the gltf file
+        @param bakeFileName (str): path to the baked file
+        @param embed_geometry (bool): whether to embed the geometry in the gltf file. Default is False.
+        @return options (dict): Dictionary of options for the conversion
         '''
         options = core.MTLX2GLTFOptions()
 
         options['debugOutput'] = False
         options['bakeFileName'] = bakeFileName
 
+        # TODO: Expose these options to the user
         if embed_geometry:
             # By default uses the "MaterialX" shader ball provided as part of
             # the materialxgltf package for binary export. 
             gltfGeometryFile = pkg_resources.resource_filename('materialxgltf', 'data/shaderBall.gltf')
-            msg = '> Load glTF geometry file: %s' % mx.FilePath(gltfGeometryFile).getBaseName()
+            msg = '> Load default geometry: %s' % mx.FilePath(gltfGeometryFile).getBaseName()
             logger.info(msg)        
             options['geometryFile'] = gltfGeometryFile        
         options['primsPerMaterial'] = True
         options['writeDefaultInputs'] = False
         options['translateShaders'] = True
         options['bakeTextures'] = True
+        # Always should be set
         options['addExtractNodes'] = True
 
         searchPath = mx.getDefaultDataSearchPath()
@@ -289,9 +308,13 @@ class QuiltiX_glTF_serializer():
 
         return options
 
-    def export_gltf_triggered(self):
+    def export_gltf_triggered(self) -> None:
         '''
         Export the current graph to a glTF file in binary format (glb)
+        - Will perform shader translation if needed to glTF
+        - Will perform baking if needed
+        - Will package to a binary file
+        @return: None
         '''
         start_path = self.editor.mx_selection_path
         if not start_path:
@@ -338,17 +361,16 @@ class QuiltiX_glTF_serializer():
             logger.error(e)
    
 
-    def convert_graph_to_gltf(self, options):
+    def convert_graph_to_gltf(self, options) -> str:
         '''
-        Convert the current graph to a glTF string.
+        Convert the current graph to a glTF document string.
         Will perform:
         - Shader translation if needed (not that only standard surface is supported)
         - Baking if needed. Note that this writes local files.
         - Uses the materialgltf package to perform conversion
 
-        Parameters:
-            options (dict): Dictionary of options for the conversion            
-        Returns the glTF string.
+        @param options (dict): Dictionary of options for the conversion            
+        @return The glTF string.
         '''
         # Disable auto nodegraph creation during
         ng_abstraction = self.editor.act_ng_abstraction.isChecked()
@@ -424,13 +446,23 @@ class QuiltiX_glTF_serializer():
                     
 @qx_plugin.hookimpl
 def after_ui_init(editor: "quiltix.QuiltiXWindow"):
+    '''
+    @brief After UI initialization, add the MaterialX glTF serializer to the editor.
+    '''
     logger.debug("Adding MaterialX glTF serializer")
     editor.gltf_serializer = QuiltiX_glTF_serializer(editor, constants.ROOT)
 
 def plugin_name() -> str:
+    '''
+    @brief Get the name of the plugin.
+    @return The name of the plugin.'''
     if haveGLTF:
         return "MaterialX glTF Serializer"
     return ""
 
 def is_valid() -> bool:
+    '''
+    @brief Check if the plugin is valid. That is the glTF serializer module is installed.
+    @return True if the plugin is valid), False otherwise.
+    '''
     return haveGLTF
