@@ -25,8 +25,17 @@
 var NAVTREE =
 [
   [ "QuiltiX glTF Plugin", "index.html", [
-    [ "QuiltiX Plugin : glTF Serializer", "index.html", null ],
     [ "Namespaces", "namespaces.html", [
+      [ "Installation", "index.html#autotoc_md1", null ],
+      [ "API Documentation", "index.html#autotoc_md2", null ],
+      [ "Export to glTF", "index.html#autotoc_md3", [
+        [ "Examples", "index.html#autotoc_md4", null ]
+      ] ],
+      [ "Import from glTF", "index.html#autotoc_md5", [
+        [ "Examples", "index.html#autotoc_md6", null ]
+      ] ],
+      [ "Preview of glTF", "index.html#autotoc_md7", null ],
+      [ "glTF Viewer", "index.html#autotoc_md8", null ],
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
       [ "Namespace Members", "namespacemembers.html", [
         [ "All", "namespacemembers.html", null ],

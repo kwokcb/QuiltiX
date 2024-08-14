@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>QuiltiX glTF Plugin: QuiltiX Plugin : glTF Serializer</title>
+<title>QuiltiX glTF Plugin: QuiltiX glTF Plugin</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -85,10 +85,60 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 
 <div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">QuiltiX Plugin : glTF Serializer </div>  </div>
+<div class="title">QuiltiX glTF Plugin </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md_D__Work_materialx_QuiltiX_sample_plugins_materialxgltf_README"></a></p>
+<div class="textblock"><p><a class="anchor" id="md_D__Work_materialx_QuiltiX_sample_plugins_materialxgltf_README"></a> This plugin allows for serialization of node graphs to and from glTF.</p>
+<p>The current supported MaterialX version for <code>QuiltiX</code> which is <code>1.38.9</code>. When <code>1.39</code> support is available no changes should be required.</p>
+<p>The supported glTF version is <code>2.0</code>.</p>
+<h2><a class="anchor" id="autotoc_md1"></a>
+Installation</h2>
+<div class="fragment"><div class="line">pip install materialxgltf==1.38.9.1</div>
+</div><!-- fragment --><p>Append path to plugin in <code>QUILTIX_PLUGIN_PATH</code> environment variable.</p>
+<div class="fragment"><div class="line">export QUILTIX_PLUGIN_PATH=$QUILTIX_PLUGIN_PATH:/path/to/materialxgltf</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md2"></a>
+API Documentation</h2>
+<p>API documentation can be found <a href="documents/html/index.html">here</a></p>
+<h2><a class="anchor" id="autotoc_md3"></a>
+Export to glTF</h2>
+<p>The following functionality is supported</p><ul>
+<li>Translations of non-glTF shaders to glTF shaders</li>
+<li>Baking of upstream graph channels</li>
+<li>Creation of glb (binary) or gltf (json) files<ul>
+<li>glb files will embed a default geometry and textures</li>
+<li>gltf files will reference external geometry and textures</li>
+</ul>
+</li>
+</ul>
+<p>Not currently supported:</p><ul>
+<li>Saving of material assignments</li>
+<li>Saving without baking upstream graph channels</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md4"></a>
+Examples</h3>
+<p>To be added.</p>
+<h2><a class="anchor" id="autotoc_md5"></a>
+Import from glTF</h2>
+<p>The following functionality is supported:</p><ul>
+<li>Import of glTF files to MaterialX</li>
+<li>Updating node graph from MaterialX</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md6"></a>
+Examples</h3>
+<table class="doxtable">
+<tr>
+<td><img src="images/DamagedHelmet_Example.png" alt="" width="100%" class="inline"/> </td><td><img src="images/DamagedHelmet_Example_MXView.png" alt="" width="100%" class="inline"/>  </td></tr>
+<tr>
+<td><img src="images/MaterialVariants.png" alt="" width="100%" class="inline"/> </td><td><img src="images/SciFiHelmet_Example.png" alt="" width="100%" class="inline"/>  </td></tr>
+</table>
+<h2><a class="anchor" id="autotoc_md7"></a>
+Preview of glTF</h2>
+<p>The following functionality is supported:</p><ul>
+<li>Preview of node graph as glTF text (JSON)</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md8"></a>
+glTF Viewer</h2>
+<p>This support has not be activated yet. </p>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->
