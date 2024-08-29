@@ -269,11 +269,12 @@ class QuiltiX_glTF_serializer():
 
                 self.editor.act_ng_abstraction.setChecked(ng_abstraction)
     
-    def setup_default_export_options(self, path, bakeFileName, embed_geometry=False) -> dict:
+    def setup_default_export_options(self, path, bakeFileName, bakeResolution=1024, embed_geometry=False) -> dict:
         '''
         Set up the default export options for gltf output.
         @param path (str): path to the gltf file
         @param bakeFileName (str): path to the baked file
+        @param bakeResolution (int): resolution of the baked textures. Default is 1024.
         @param embed_geometry (bool): whether to embed the geometry in the gltf file. Default is False.
         @return options (dict): Dictionary of options for the conversion
         '''
@@ -281,6 +282,9 @@ class QuiltiX_glTF_serializer():
 
         options['debugOutput'] = False
         options['bakeFileName'] = bakeFileName
+        # Clamp to a minimum power-of-2 resolution
+        bakeResolution = max(bakeResolution, 16)
+        options['bakeResolution'] = bakeResolution
 
         # TODO: Expose these options to the user
         if embed_geometry:
@@ -307,6 +311,19 @@ class QuiltiX_glTF_serializer():
         options['searchPath'] = searchPath
 
         return options
+    
+    def create_baked_path(self, path):
+        '''
+        Create a baked path name from an original path
+        @param path (str): The original path
+        @return: The baked path
+        '''
+        # If is a directory, add a file name
+        if os.path.isdir(path):
+            path = os.path.join(path, 'temp_baked.mtlx')
+        else:
+            path = path.replace('.mtlx', '_baked.mtlx')
+        return path
 
     def export_gltf_triggered(self) -> None:
         '''
@@ -328,8 +345,8 @@ class QuiltiX_glTF_serializer():
         )
         
         # Set up export options
-        bakeFileName = start_path + '_baked.mtlx'
-        options = self.setup_default_export_options(path, bakeFileName, embed_geometry=True)
+        bakeFileName = self.create_baked_path(start_path)
+        options = self.setup_default_export_options(path, bakeFileName, bakeResolution=1024, embed_geometry=True)
         gltf_string = self.convert_graph_to_gltf(options)
 
         if gltf_string == '{}':
@@ -404,11 +421,11 @@ class QuiltiX_glTF_serializer():
 
         # Perform baking if needed
         if forceBake or (translatedCount > 0 and options['bakeTextures']):
-            logger.debug('- Baking start...')
-            bakeResolution = 2048
             bakedFileName = options['bakeFileName']
+            bakeResolution = 1024
             if options['bakeResolution']:
                 bakeResolution = options['bakeResolution']
+            logger.debug(f'- START baking to {bakedFileName}. Resolution: {bakeResolution} ...')
             mtlx2glTFWriter.bakeTextures(doc, False, bakeResolution, bakeResolution, False, 
                                         False, False, bakedFileName)
             if os.path.exists(bakedFileName):
@@ -419,7 +436,7 @@ class QuiltiX_glTF_serializer():
                 for uri in remappedUris:
                     logger.debug('  - Remapped URI: ' + uri[0] + ' to ' + uri[1])
                     core.Util.writeMaterialXDoc(doc, bakedFileName)
-            logger.debug('- ...Baking end.')
+            logger.debug('- ... END baking.')
 
         gltfString = mtlx2glTFWriter.convert(doc)
         return gltfString
@@ -435,13 +452,15 @@ class QuiltiX_glTF_serializer():
             path = os.path.join(ROOT, "resources", "materials")
 
         # Setup export options
-        bakeFileName = path + '/temp_baked.mtlx'
-        options = self.setup_default_export_options(path, bakeFileName, embed_geometry=False)
+        logger.debug('--------------------------- START export glTF text ---------------------------')
+        bakeFileName = self.create_baked_path(path)
+        options = self.setup_default_export_options(path, bakeFileName, bakeResolution=64, embed_geometry=False)
 
         logger.debug('Show glTF text triggered. Path:' + path + '. bakeFileName: ' + bakeFileName)
 
         # Convert and display the text                
         text = self.convert_graph_to_gltf(options)
+        logger.debug('--------------------------- END export glTF text ---------------------------')
         self.show_text_box(text, 'glTF Representation')
                     
 @qx_plugin.hookimpl
