@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['after_5fui_5finit_24',['after_ui_init',['../namespaceplugin.html#aa543a3705de9223e05e53bffdcf84d8d',1,'plugin']]]
+  ['after_5fui_5finit_0',['after_ui_init',['../namespaceplugin.html#ae0fd7adf18ce6851f8473fa733eaef20',1,'plugin']]]
 ];

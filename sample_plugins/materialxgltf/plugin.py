@@ -153,10 +153,10 @@ class QuiltiX_glTF_serializer():
         self.bake_textures_option.setChecked(False)
         gltfMenu2.addAction(self.bake_textures_option)
 
-        #version = 'materialxgltf version: ' + materialxgltf.__version__
-        #version_action = QAction(version, self.editor)
-        #version_action.setEnabled(False)
-        #gltfMenu.addAction(version_action)
+        version = 'materialxgltf version: ' + materialxgltf.__version__
+        version_action = QAction(version, self.editor)
+        version_action.setEnabled(False)
+        gltfMenu.addAction(version_action)
 
         # Add glTF Viewer
         self.setup_gltf_viewer_doc()
@@ -452,7 +452,6 @@ class QuiltiX_glTF_serializer():
             path = os.path.join(ROOT, "resources", "materials")
 
         # Setup export options
-        logger.debug('--------------------------- START export glTF text ---------------------------')
         bakeFileName = self.create_baked_path(path)
         options = self.setup_default_export_options(path, bakeFileName, bakeResolution=64, embed_geometry=False)
 
@@ -460,7 +459,6 @@ class QuiltiX_glTF_serializer():
 
         # Convert and display the text                
         text = self.convert_graph_to_gltf(options)
-        logger.debug('--------------------------- END export glTF text ---------------------------')
         self.show_text_box(text, 'glTF Representation')
                     
 @qx_plugin.hookimpl

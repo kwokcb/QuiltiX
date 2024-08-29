@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['plugin_22',['plugin',['../namespaceplugin.html',1,'']]]
+  ['plugin_0',['plugin',['../namespaceplugin.html',1,'']]]
 ];
