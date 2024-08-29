@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['viewer_0',['glTF Viewer',['../index.html#autotoc_md8',1,'']]]
+  ['to_20gltf_0',['Export to glTF',['../index.html#autotoc_md3',1,'']]]
 ];

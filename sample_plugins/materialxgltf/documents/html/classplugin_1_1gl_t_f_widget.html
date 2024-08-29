@@ -124,14 +124,20 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:add4569aecc9a973a2c066d91fffb3126" id="r_add4569aecc9a973a2c066d91fffb3126"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#add4569aecc9a973a2c066d91fffb3126">web_view</a> = None</td></tr>
+<tr class="memitem:add4569aecc9a973a2c066d91fffb3126" id="r_add4569aecc9a973a2c066d91fffb3126"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#add4569aecc9a973a2c066d91fffb3126">web_view</a> = QWebEngineView()</td></tr>
 <tr class="separator:add4569aecc9a973a2c066d91fffb3126"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41efc6ddc4a16beaebb0b197de4cebab" id="r_a41efc6ddc4a16beaebb0b197de4cebab"><td class="memItemLeft" align="right" valign="top">str&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a41efc6ddc4a16beaebb0b197de4cebab">viewer_options</a> = '?hideSave=true'</td></tr>
+<tr class="separator:a41efc6ddc4a16beaebb0b197de4cebab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90e941868f6d363d6ee3ec1a39f23806" id="r_a90e941868f6d363d6ee3ec1a39f23806"><td class="memItemLeft" align="right" valign="top">str&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a90e941868f6d363d6ee3ec1a39f23806">viewer_address</a> = 'https://kwokcb.github.io/MaterialXLab/documents/gltfViewer_simple.html'</td></tr>
+<tr class="separator:a90e941868f6d363d6ee3ec1a39f23806"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1745e2d0b07c42680ec1c8e08270bdd7" id="r_a1745e2d0b07c42680ec1c8e08270bdd7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1745e2d0b07c42680ec1c8e08270bdd7">page</a> = <a class="el" href="classplugin_1_1gl_t_f_engine_page.html">glTFEnginePage</a>(self.web_view)</td></tr>
+<tr class="separator:a1745e2d0b07c42680ec1c8e08270bdd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Description: glTF Viewer widget <br  />
  </p>
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00073">73</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00121">121</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="abd9e551e733057a3f6718d2a9905b163" name="abd9e551e733057a3f6718d2a9905b163"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abd9e551e733057a3f6718d2a9905b163">&#9670;&#160;</a></span>__init__()</h2>
@@ -154,40 +160,109 @@ Public Attributes</h2></td></tr>
 
 <p>Description: Sets up a web view and loads in a sample glTF viewer page. </p>
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00077">77</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   77</span>    <span class="keyword">def </span>__init__(self, parent=None):</div>
-<div class="line"><span class="lineno">   78</span>        <span class="stringliteral">&#39;&#39;&#39;</span></div>
-<div class="line"><span class="lineno">   79</span><span class="stringliteral">        Description: Sets up a web view and loads in a sample glTF viewer page.</span></div>
-<div class="line"><span class="lineno">   80</span><span class="stringliteral">        &#39;&#39;&#39;</span></div>
-<div class="line"><span class="lineno">   81</span>        super(glTFWidget, self).__init__(parent)</div>
-<div class="line"><span class="lineno">   82</span>        </div>
-<div class="line"><span class="lineno">   83</span>        self.setWindowTitle(<span class="stringliteral">&quot;glTF Viewer&quot;</span>)</div>
-<div class="line"><span class="lineno">   84</span> </div>
-<div class="line"><span class="lineno">   85</span>        self.setFloating(<span class="keyword">False</span>)</div>
-<div class="line"><span class="lineno">   86</span>        </div>
-<div class="line"><span class="lineno">   87</span>        <span class="comment"># Create a web view. </span></div>
-<div class="line"><span class="lineno">   88</span>        self.web_view = <span class="keywordtype">None</span> <span class="comment"># QWebEngineView()        </span></div>
-<div class="line"><span class="lineno">   89</span>        <span class="comment">#self.web_view.setUrl(QtCore.QUrl(&#39;https://materialx.nanmucreative.com/documents/simpleViewer.html&#39;))</span></div>
-<div class="line"><span class="lineno">   90</span>                <span class="comment">#&#39;https://kwokcb.github.io/web_scene_editor/viewer/room_viewer.html&#39;))</span></div>
-<div class="line"><span class="lineno">   91</span>                        </div>
-<div class="line"><span class="lineno">   92</span>        <span class="comment"># e.g. Set to local host if you want to run a local page</span></div>
-<div class="line"><span class="lineno">   93</span>        <span class="comment">#self.web_view.setUrl(QtCore.QUrl(&#39;http://localhost:8000/gltfViewer_simple.html&#39;))</span></div>
-<div class="line"><span class="lineno">   94</span> </div>
-<div class="line"><span class="lineno">   95</span>        <span class="comment"># Set up the layout</span></div>
-<div class="line"><span class="lineno">   96</span>        layout = QVBoxLayout()</div>
-<div class="line"><span class="lineno">   97</span>        <span class="comment">#layout.addWidget(self.web_view)</span></div>
-<div class="line"><span class="lineno">   98</span>        </div>
-<div class="line"><span class="lineno">   99</span>        <span class="comment"># Create a central widget to hold the layout</span></div>
-<div class="line"><span class="lineno">  100</span>        central_widget = QWidget()</div>
-<div class="line"><span class="lineno">  101</span>        central_widget.setLayout(layout)</div>
-<div class="line"><span class="lineno">  102</span>        </div>
-<div class="line"><span class="lineno">  103</span>        <span class="comment"># Set the central widget of the dock widget</span></div>
-<div class="line"><span class="lineno">  104</span>        self.setWidget(central_widget)</div>
-<div class="line"><span class="lineno">  105</span> </div>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00125">125</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  125</span>    <span class="keyword">def </span>__init__(self, parent=None):</div>
+<div class="line"><span class="lineno">  126</span>        <span class="stringliteral">&#39;&#39;&#39;</span></div>
+<div class="line"><span class="lineno">  127</span><span class="stringliteral">        Description: Sets up a web view and loads in a sample glTF viewer page.</span></div>
+<div class="line"><span class="lineno">  128</span><span class="stringliteral">        &#39;&#39;&#39;</span></div>
+<div class="line"><span class="lineno">  129</span>        super(glTFWidget, self).__init__(parent)</div>
+<div class="line"><span class="lineno">  130</span>        </div>
+<div class="line"><span class="lineno">  131</span>        self.setWindowTitle(<span class="stringliteral">&quot;glTF Viewer&quot;</span>)</div>
+<div class="line"><span class="lineno">  132</span> </div>
+<div class="line"><span class="lineno">  133</span>        self.setFloating(<span class="keyword">False</span>)</div>
+<div class="line"><span class="lineno">  134</span>        </div>
+<div class="line"><span class="lineno">  135</span>        <span class="comment"># Create a web view. </span></div>
+<div class="line"><span class="lineno">  136</span>        self.web_view = QWebEngineView()        </div>
+<div class="line"><span class="lineno">  137</span>        self.viewer_options = <span class="stringliteral">&#39;?hideSave=true&#39;</span></div>
+<div class="line"><span class="lineno">  138</span>        self.viewer_options += <span class="stringliteral">&#39;&amp;env=https://kwokcb.github.io/MaterialXLab/resources/Lights/dreifaltigkeitsberg_1k.hdr&#39;</span></div>
+<div class="line"><span class="lineno">  139</span>        self.viewer_address = <span class="stringliteral">&#39;https://kwokcb.github.io/MaterialXLab/documents/gltfViewer_simple.html&#39;</span> </div>
+<div class="line"><span class="lineno">  140</span>        <span class="comment"># e.g. For debugging can set to local host if you want to run a local page</span></div>
+<div class="line"><span class="lineno">  141</span>        <span class="comment">#self.viewer_address = &#39;http://localhost:8000/documents/gltfViewer_simple.html&#39; </span></div>
+<div class="line"><span class="lineno">  142</span>        self.viewer_address += self.viewer_options</div>
+<div class="line"><span class="lineno">  143</span>        <span class="comment">#self.logger.debug(&#39;glTF Viewer address: &#39; + self.viewer_address)</span></div>
+<div class="line"><span class="lineno">  144</span> </div>
+<div class="line"><span class="lineno">  145</span>        <span class="comment"># Create a custom page and set it to the web view</span></div>
+<div class="line"><span class="lineno">  146</span>        self.page = glTFEnginePage(self.web_view)</div>
+<div class="line"><span class="lineno">  147</span>        self.web_view.setPage(self.page)</div>
+<div class="line"><span class="lineno">  148</span> </div>
+<div class="line"><span class="lineno">  149</span>        self.web_view.setUrl(QtCore.QUrl(self.viewer_address))</div>
+<div class="line"><span class="lineno">  150</span>        </div>
+<div class="line"><span class="lineno">  151</span>        <span class="comment"># Apply the request interceptor</span></div>
+<div class="line"><span class="lineno">  152</span>        <span class="comment">#interceptor = MyRequestInterceptor()</span></div>
+<div class="line"><span class="lineno">  153</span>        <span class="comment">#QWebEngineProfile.defaultProfile().setUrlRequestInterceptor(interceptor)</span></div>
+<div class="line"><span class="lineno">  154</span> </div>
+<div class="line"><span class="lineno">  155</span>        <span class="comment">#settings = self.web_view.settings()</span></div>
+<div class="line"><span class="lineno">  156</span>        <span class="comment"># Disable features that might trigger the error (general approach)</span></div>
+<div class="line"><span class="lineno">  157</span>        <span class="comment">#settings.setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, False)</span></div>
+<div class="line"><span class="lineno">  158</span>        <span class="comment">#settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, False)</span></div>
+<div class="line"><span class="lineno">  159</span>        <span class="comment">#settings.setAttribute(QWebEngineSettings.WebAttribute.XSSAuditingEnabled, False)</span></div>
+<div class="line"><span class="lineno">  160</span>                        </div>
+<div class="line"><span class="lineno">  161</span>        <span class="comment"># Set up the layout</span></div>
+<div class="line"><span class="lineno">  162</span>        layout = QVBoxLayout()</div>
+<div class="line"><span class="lineno">  163</span>        layout.addWidget(self.web_view)</div>
+<div class="line"><span class="lineno">  164</span>        </div>
+<div class="line"><span class="lineno">  165</span>        <span class="comment"># Create a central widget to hold the layout</span></div>
+<div class="line"><span class="lineno">  166</span>        central_widget = QWidget()</div>
+<div class="line"><span class="lineno">  167</span>        central_widget.setLayout(layout)</div>
+<div class="line"><span class="lineno">  168</span> </div>
+<div class="line"><span class="lineno">  169</span>        <span class="comment"># Inject JavaScript after the page is loaded</span></div>
+<div class="line"><span class="lineno">  170</span>        <span class="comment">#self.web_view.loadFinished.connect(self.page.injectJavaScript)        </span></div>
+<div class="line"><span class="lineno">  171</span>        </div>
+<div class="line"><span class="lineno">  172</span>        <span class="comment"># Set the central widget of the dock widget</span></div>
+<div class="line"><span class="lineno">  173</span>        self.setWidget(central_widget)</div>
+<div class="line"><span class="lineno">  174</span> </div>
 </div><!-- fragment -->
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="a1745e2d0b07c42680ec1c8e08270bdd7" name="a1745e2d0b07c42680ec1c8e08270bdd7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1745e2d0b07c42680ec1c8e08270bdd7">&#9670;&#160;</a></span>page</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">plugin.glTFWidget.page = <a class="el" href="classplugin_1_1gl_t_f_engine_page.html">glTFEnginePage</a>(self.web_view)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00146">146</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+
+</div>
+</div>
+<a id="a90e941868f6d363d6ee3ec1a39f23806" name="a90e941868f6d363d6ee3ec1a39f23806"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90e941868f6d363d6ee3ec1a39f23806">&#9670;&#160;</a></span>viewer_address</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">plugin.glTFWidget.viewer_address = 'https://kwokcb.github.io/MaterialXLab/documents/gltfViewer_simple.html'</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00139">139</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+
+</div>
+</div>
+<a id="a41efc6ddc4a16beaebb0b197de4cebab" name="a41efc6ddc4a16beaebb0b197de4cebab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a41efc6ddc4a16beaebb0b197de4cebab">&#9670;&#160;</a></span>viewer_options</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">str plugin.glTFWidget.viewer_options = '?hideSave=true'</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00137">137</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+
+</div>
+</div>
 <a id="add4569aecc9a973a2c066d91fffb3126" name="add4569aecc9a973a2c066d91fffb3126"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#add4569aecc9a973a2c066d91fffb3126">&#9670;&#160;</a></span>web_view</h2>
 
@@ -195,12 +270,12 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">plugin.glTFWidget.web_view = None</td>
+          <td class="memname">plugin.glTFWidget.web_view = QWebEngineView()</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00088">88</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00136">136</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
 
 </div>
 </div>

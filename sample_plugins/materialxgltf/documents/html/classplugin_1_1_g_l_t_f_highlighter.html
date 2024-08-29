@@ -122,7 +122,7 @@ Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00055">55</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00062">62</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a46acd428bcd80370a2d525331f680eb3" name="a46acd428bcd80370a2d525331f680eb3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a46acd428bcd80370a2d525331f680eb3">&#9670;&#160;</a></span>__init__()</h2>
@@ -139,13 +139,13 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00056">56</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   56</span>    <span class="keyword">def </span>__init__(self):</div>
-<div class="line"><span class="lineno">   57</span>        self.lexer = JsonLexer()</div>
-<div class="line"><span class="lineno">   58</span>        <span class="comment"># We don&#39;t add line numbers since this get&#39;s copied with</span></div>
-<div class="line"><span class="lineno">   59</span>        <span class="comment"># copy-paste.</span></div>
-<div class="line"><span class="lineno">   60</span>        self.formatter = HtmlFormatter(linenos=<span class="keyword">False</span>, style=<span class="stringliteral">&#39;github-dark&#39;</span>)</div>
-<div class="line"><span class="lineno">   61</span> </div>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00063">63</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   63</span>    <span class="keyword">def </span>__init__(self):</div>
+<div class="line"><span class="lineno">   64</span>        self.lexer = JsonLexer()</div>
+<div class="line"><span class="lineno">   65</span>        <span class="comment"># We don&#39;t add line numbers since this get&#39;s copied with</span></div>
+<div class="line"><span class="lineno">   66</span>        <span class="comment"># copy-paste.</span></div>
+<div class="line"><span class="lineno">   67</span>        self.formatter = HtmlFormatter(linenos=<span class="keyword">False</span>, style=<span class="stringliteral">&#39;github-dark&#39;</span>)</div>
+<div class="line"><span class="lineno">   68</span> </div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -169,18 +169,22 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00062">62</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   62</span>    <span class="keyword">def </span>highlight(self, text):</div>
-<div class="line"><span class="lineno">   63</span>        highlighted_html = highlight(text, self.lexer, self.formatter)</div>
-<div class="line"><span class="lineno">   64</span>        styles = (</div>
-<div class="line"><span class="lineno">   65</span>            f<span class="stringliteral">&quot;&lt;style&gt;&quot;</span></div>
-<div class="line"><span class="lineno">   66</span>            f<span class="stringliteral">&quot;{self.formatter.get_style_defs(&#39;.highlight&#39;)}&quot;</span></div>
-<div class="line"><span class="lineno">   67</span>            f<span class="stringliteral">&quot;pre {{ line-height: 1.0; margin: 0; }}&quot;</span></div>
-<div class="line"><span class="lineno">   68</span>            f<span class="stringliteral">&quot;&lt;/style&gt;&quot;</span></div>
-<div class="line"><span class="lineno">   69</span>        )</div>
-<div class="line"><span class="lineno">   70</span>        full_html = f<span class="stringliteral">&quot;&lt;html&gt;&lt;head&gt;{styles}&lt;/head&gt;&lt;body&gt;{highlighted_html}&lt;/body&gt;&lt;/html&gt;&quot;</span>     </div>
-<div class="line"><span class="lineno">   71</span>        <span class="keywordflow">return</span> full_html</div>
-<div class="line"><span class="lineno">   72</span> </div>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00069">69</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   69</span>    <span class="keyword">def </span>highlight(self, text):</div>
+<div class="line"><span class="lineno">   70</span>        highlighted_html = highlight(text, self.lexer, self.formatter)</div>
+<div class="line"><span class="lineno">   71</span>        styles = (</div>
+<div class="line"><span class="lineno">   72</span>            f<span class="stringliteral">&quot;&lt;style&gt;&quot;</span></div>
+<div class="line"><span class="lineno">   73</span>            f<span class="stringliteral">&quot;{self.formatter.get_style_defs(&#39;.highlight&#39;)}&quot;</span></div>
+<div class="line"><span class="lineno">   74</span>            f<span class="stringliteral">&quot;pre {{ line-height: 1.0; margin: 0; }}&quot;</span></div>
+<div class="line"><span class="lineno">   75</span>            f<span class="stringliteral">&quot;&lt;/style&gt;&quot;</span></div>
+<div class="line"><span class="lineno">   76</span>        )</div>
+<div class="line"><span class="lineno">   77</span>        full_html = f<span class="stringliteral">&quot;&lt;html&gt;&lt;head&gt;{styles}&lt;/head&gt;&lt;body&gt;{highlighted_html}&lt;/body&gt;&lt;/html&gt;&quot;</span>     </div>
+<div class="line"><span class="lineno">   78</span>        <span class="keywordflow">return</span> full_html</div>
+<div class="line"><span class="lineno">   79</span> </div>
+<div class="line"><span class="lineno">   80</span><span class="comment">#class MyRequestInterceptor(QWebEngineUrlRequestInterceptor):</span></div>
+<div class="line"><span class="lineno">   81</span><span class="comment">#    def interceptRequest(self, info):</span></div>
+<div class="line"><span class="lineno">   82</span><span class="comment">#        info.setHttpHeader(b&#39;Permissions-Policy&#39;, b&#39;interest-cohort=()&#39;)</span></div>
+<div class="line"><span class="lineno">   83</span> </div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -197,7 +201,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00060">60</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00067">67</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
 
 </div>
 </div>
@@ -213,7 +217,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00057">57</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00064">64</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
 
 </div>
 </div>

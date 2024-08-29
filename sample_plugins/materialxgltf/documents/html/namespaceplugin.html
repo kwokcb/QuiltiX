@@ -111,6 +111,9 @@ $(function(){initNavTree('namespaceplugin.html',''); initResizable(true); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classplugin_1_1gl_t_f_engine_page.html">glTFEnginePage</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Custom web engine page for the glTF viewer.  <a href="classplugin_1_1gl_t_f_engine_page.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classplugin_1_1_g_l_t_f_highlighter.html">GLTFHighlighter</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classplugin_1_1gl_t_f_widget.html">glTFWidget</a></td></tr>
@@ -162,14 +165,14 @@ Variables</h2></td></tr>
 
 <p>After UI initialization, add the MaterialX glTF serializer to the editor. </p>
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00465">465</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  465</span><span class="keyword">def </span>after_ui_init(editor: <span class="stringliteral">&quot;quiltix.QuiltiXWindow&quot;</span>):</div>
-<div class="line"><span class="lineno">  466</span>    <span class="stringliteral">&#39;&#39;&#39;</span></div>
-<div class="line"><span class="lineno">  467</span><span class="stringliteral">    @brief After UI initialization, add the MaterialX glTF serializer to the editor.</span></div>
-<div class="line"><span class="lineno">  468</span><span class="stringliteral">    &#39;&#39;&#39;</span></div>
-<div class="line"><span class="lineno">  469</span>    logger.debug(<span class="stringliteral">&quot;Adding MaterialX glTF serializer&quot;</span>)</div>
-<div class="line"><span class="lineno">  470</span>    editor.gltf_serializer = QuiltiX_glTF_serializer(editor, constants.ROOT)</div>
-<div class="line"><span class="lineno">  471</span> </div>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00534">534</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  534</span><span class="keyword">def </span>after_ui_init(editor: <span class="stringliteral">&quot;quiltix.QuiltiXWindow&quot;</span>):</div>
+<div class="line"><span class="lineno">  535</span>    <span class="stringliteral">&#39;&#39;&#39;</span></div>
+<div class="line"><span class="lineno">  536</span><span class="stringliteral">    @brief After UI initialization, add the MaterialX glTF serializer to the editor.</span></div>
+<div class="line"><span class="lineno">  537</span><span class="stringliteral">    &#39;&#39;&#39;</span></div>
+<div class="line"><span class="lineno">  538</span>    logger.debug(<span class="stringliteral">&quot;Adding MaterialX glTF serializer&quot;</span>)</div>
+<div class="line"><span class="lineno">  539</span>    editor.gltf_serializer = QuiltiX_glTF_serializer(editor, constants.ROOT)</div>
+<div class="line"><span class="lineno">  540</span> </div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -191,13 +194,13 @@ Variables</h2></td></tr>
 <p>Check if the plugin is valid. </p>
 <p>That is the glTF serializer module is installed. </p><dl class="section return"><dt>Returns</dt><dd>True if the plugin is valid), False otherwise. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00480">480</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  480</span><span class="keyword">def </span>is_valid() -&gt; bool:</div>
-<div class="line"><span class="lineno">  481</span>    <span class="stringliteral">&#39;&#39;&#39;</span></div>
-<div class="line"><span class="lineno">  482</span><span class="stringliteral">    @brief Check if the plugin is valid. That is the glTF serializer module is installed.</span></div>
-<div class="line"><span class="lineno">  483</span><span class="stringliteral">    @return True if the plugin is valid), False otherwise.</span></div>
-<div class="line"><span class="lineno">  484</span><span class="stringliteral">    &#39;&#39;&#39;</span></div>
-<div class="line"><span class="lineno">  485</span>    <span class="keywordflow">return</span> haveGLTF</div>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00549">549</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  549</span><span class="keyword">def </span>is_valid() -&gt; bool:</div>
+<div class="line"><span class="lineno">  550</span>    <span class="stringliteral">&#39;&#39;&#39;</span></div>
+<div class="line"><span class="lineno">  551</span><span class="stringliteral">    @brief Check if the plugin is valid. That is the glTF serializer module is installed.</span></div>
+<div class="line"><span class="lineno">  552</span><span class="stringliteral">    @return True if the plugin is valid), False otherwise.</span></div>
+<div class="line"><span class="lineno">  553</span><span class="stringliteral">    &#39;&#39;&#39;</span></div>
+<div class="line"><span class="lineno">  554</span>    <span class="keywordflow">return</span> haveGLTF</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -219,15 +222,15 @@ Variables</h2></td></tr>
 <p>Get the name of the plugin. </p>
 <dl class="section return"><dt>Returns</dt><dd>The name of the plugin. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00472">472</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  472</span><span class="keyword">def </span>plugin_name() -&gt; str:</div>
-<div class="line"><span class="lineno">  473</span>    <span class="stringliteral">&#39;&#39;&#39;</span></div>
-<div class="line"><span class="lineno">  474</span><span class="stringliteral">    @brief Get the name of the plugin.</span></div>
-<div class="line"><span class="lineno">  475</span><span class="stringliteral">    @return The name of the plugin.&#39;&#39;&#39;</span></div>
-<div class="line"><span class="lineno">  476</span>    <span class="keywordflow">if</span> haveGLTF:</div>
-<div class="line"><span class="lineno">  477</span>        <span class="keywordflow">return</span> <span class="stringliteral">&quot;MaterialX glTF Serializer&quot;</span></div>
-<div class="line"><span class="lineno">  478</span>    <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span></div>
-<div class="line"><span class="lineno">  479</span> </div>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00541">541</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  541</span><span class="keyword">def </span>plugin_name() -&gt; str:</div>
+<div class="line"><span class="lineno">  542</span>    <span class="stringliteral">&#39;&#39;&#39;</span></div>
+<div class="line"><span class="lineno">  543</span><span class="stringliteral">    @brief Get the name of the plugin.</span></div>
+<div class="line"><span class="lineno">  544</span><span class="stringliteral">    @return The name of the plugin.&#39;&#39;&#39;</span></div>
+<div class="line"><span class="lineno">  545</span>    <span class="keywordflow">if</span> haveGLTF:</div>
+<div class="line"><span class="lineno">  546</span>        <span class="keywordflow">return</span> <span class="stringliteral">&quot;MaterialX glTF Serializer&quot;</span></div>
+<div class="line"><span class="lineno">  547</span>    <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span></div>
+<div class="line"><span class="lineno">  548</span> </div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -260,7 +263,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00035">35</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00042">42</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
 
 </div>
 </div>
@@ -276,7 +279,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00030">30</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
+<p class="definition">Definition at line <a class="el" href="plugin_8py_source.html#l00037">37</a> of file <a class="el" href="plugin_8py_source.html">plugin.py</a>.</p>
 
 </div>
 </div>
