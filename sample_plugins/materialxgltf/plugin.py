@@ -22,10 +22,17 @@ from qtpy.QtWidgets import (  # type: ignore
     QDockWidget,
     QVBoxLayout,
     QTextEdit,
-    QWidget 
+    QWidget    
 )
 from QuiltiX import constants, qx_plugin
 from QuiltiX.constants import ROOT
+
+# Add in QWebEngineView for the glTF viewer
+from qtpy.QtWebEngineWidgets import QWebEngineView
+from qtpy.QtQuick import QQuickWindow
+from qtpy.QtQuick import QSGRendererInterface
+# Ensure the application uses OpenGL for rendering
+QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.OpenGL)
 
 logger = logging.getLogger(__name__)
 
@@ -85,16 +92,16 @@ class glTFWidget(QDockWidget):
         self.setFloating(False)
         
         # Create a web view. 
-        self.web_view = None # QWebEngineView()        
-        #self.web_view.setUrl(QtCore.QUrl('https://materialx.nanmucreative.com/documents/simpleViewer.html'))
-                #'https://kwokcb.github.io/web_scene_editor/viewer/room_viewer.html'))
+        self.web_view = QWebEngineView()        
+        self.viewer_address = 'https://kwokcb.github.io/MaterialXLab/documents/gltfViewer_simple.html'
+        self.web_view.setUrl(QtCore.QUrl(self.viewer_address))
                         
-        # e.g. Set to local host if you want to run a local page
+        # e.g. For debugging can set to local host if you want to run a local page
         #self.web_view.setUrl(QtCore.QUrl('http://localhost:8000/gltfViewer_simple.html'))
 
         # Set up the layout
         layout = QVBoxLayout()
-        #layout.addWidget(self.web_view)
+        layout.addWidget(self.web_view)
         
         # Create a central widget to hold the layout
         central_widget = QWidget()
@@ -153,10 +160,10 @@ class QuiltiX_glTF_serializer():
         self.bake_textures_option.setChecked(False)
         gltfMenu2.addAction(self.bake_textures_option)
 
-        version = 'materialxgltf version: ' + materialxgltf.__version__
-        version_action = QAction(version, self.editor)
-        version_action.setEnabled(False)
-        gltfMenu.addAction(version_action)
+        #version = 'materialxgltf version: ' + materialxgltf.__version__
+        #version_action = QAction(version, self.editor)
+        #version_action.setEnabled(False)
+        #gltfMenu.addAction(version_action)
 
         # Add glTF Viewer
         self.setup_gltf_viewer_doc()
