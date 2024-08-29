@@ -27,8 +27,8 @@ from qtpy.QtWidgets import (  # type: ignore
 from QuiltiX import constants, qx_plugin
 from QuiltiX.constants import ROOT
 
-# Add in QWebEngineView for the glTF viewer
-from qtpy.QtWebEngineWidgets import QWebEngineView
+#from qtpy.QtWebEngineCore import QWebEnginePage, QWebEngineUrlRequestInterceptor,  QWebEngineProfile, QWebEngineSettings
+from qtpy.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from qtpy.QtQuick import QQuickWindow
 from qtpy.QtQuick import QSGRendererInterface
 # Ensure the application uses OpenGL for rendering
@@ -77,6 +77,47 @@ class GLTFHighlighter:
         full_html = f"<html><head>{styles}</head><body>{highlighted_html}</body></html>"     
         return full_html
 
+#class MyRequestInterceptor(QWebEngineUrlRequestInterceptor):
+#    def interceptRequest(self, info):
+#        info.setHttpHeader(b'Permissions-Policy', b'interest-cohort=()')
+
+class glTFEnginePage(QWebEnginePage):
+    '''
+    @brief Custom web engine page for the glTF viewer
+    '''
+    def __init__(self, parent=None):
+        '''
+        @brief Initialize the custom web engine page
+        @param parent: The parent widget        
+        '''
+        super().__init__(parent)
+        self.debug = False
+
+    def setDebug(self, debug):
+        '''
+        @brief Set the debug flag
+        @param debug: The debug flag
+        '''
+        self.debug = debug
+
+    def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
+        '''
+        @brief Handle JavaScript console messages
+        '''
+        if self.debug:
+            print(f"JS: {message} (line: {lineNumber}, source: {sourceID})")
+
+    def injectJavaScript(self):
+        '''
+        Add interestCohort function to the document to disable FLoC
+        '''
+        script = """
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.interestCohort = function() { return false; };
+        });
+        """
+        self.runJavaScript(script)
+
 class glTFWidget(QDockWidget):
     '''
     Description: glTF Viewer widget    
@@ -93,12 +134,30 @@ class glTFWidget(QDockWidget):
         
         # Create a web view. 
         self.web_view = QWebEngineView()        
-        self.viewer_address = 'https://kwokcb.github.io/MaterialXLab/documents/gltfViewer_simple.html'
-        self.web_view.setUrl(QtCore.QUrl(self.viewer_address))
-                        
+        self.viewer_options = '?hideSave=true'
+        self.viewer_options += '&env=https://kwokcb.github.io/MaterialXLab/resources/Lights/dreifaltigkeitsberg_1k.hdr'
+        self.viewer_address = 'https://kwokcb.github.io/MaterialXLab/documents/gltfViewer_simple.html' 
         # e.g. For debugging can set to local host if you want to run a local page
-        #self.web_view.setUrl(QtCore.QUrl('http://localhost:8000/gltfViewer_simple.html'))
+        #self.viewer_address = 'http://localhost:8000/documents/gltfViewer_simple.html' 
+        self.viewer_address += self.viewer_options
+        #self.logger.debug('glTF Viewer address: ' + self.viewer_address)
 
+        # Create a custom page and set it to the web view
+        self.page = glTFEnginePage(self.web_view)
+        self.web_view.setPage(self.page)
+
+        self.web_view.setUrl(QtCore.QUrl(self.viewer_address))
+        
+        # Apply the request interceptor
+        #interceptor = MyRequestInterceptor()
+        #QWebEngineProfile.defaultProfile().setUrlRequestInterceptor(interceptor)
+
+        #settings = self.web_view.settings()
+        # Disable features that might trigger the error (general approach)
+        #settings.setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, False)
+        #settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, False)
+        #settings.setAttribute(QWebEngineSettings.WebAttribute.XSSAuditingEnabled, False)
+                        
         # Set up the layout
         layout = QVBoxLayout()
         layout.addWidget(self.web_view)
@@ -106,6 +165,9 @@ class glTFWidget(QDockWidget):
         # Create a central widget to hold the layout
         central_widget = QWidget()
         central_widget.setLayout(layout)
+
+        # Inject JavaScript after the page is loaded
+        #self.web_view.loadFinished.connect(self.page.injectJavaScript)        
         
         # Set the central widget of the dock widget
         self.setWidget(central_widget)
