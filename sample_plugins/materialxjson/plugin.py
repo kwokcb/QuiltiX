@@ -1,3 +1,4 @@
+# Sample plug-in for QuiltiX which adds import, export, and preview functionality for MaterialX in JSON format
 
 import logging
 import os
@@ -21,14 +22,13 @@ from qtpy.QtWidgets import (  # type: ignore
 from QuiltiX import constants, qx_plugin
 
 logger = logging.getLogger(__name__)
-have_module = True
+has_materialxjsoncore = True
 
 try:
-    from gltf_materialx_converter import converter as MxGLTFPT
-    from gltf_materialx_converter import utilities as MxGLTFPTUtil
+    import materialxjson.core as jsoncore
 except ImportError:
-    have_module = False
-    logger.error("gltf_materialx_converter module not found")
+    has_materialxjsoncore = False
+    logger.error("materialxjson.core module not found")
 
 if TYPE_CHECKING:
     from QuiltiX import quiltix
@@ -52,7 +52,7 @@ class JsonHighlighter:
         full_html = f"<html><head>{styles}</head><body>{highlighted_html}</body></html>"     
         return full_html
 
-class QuiltiX_GLTFPT_serializer:
+class QuiltiX_JSON_serializer:
     def __init__(self, editor, root):
         """
         Initialize the JSON serializer.
@@ -61,27 +61,24 @@ class QuiltiX_GLTFPT_serializer:
         self.root = root
         self.indent = 4
 
-        stdlib, libFiles = MxGLTFPTUtil.loadStandardLibraries()
-        self.stdlib = stdlib
-
         # Add JSON menu to the file menu
         # ----------------------------------------
         editor.file_menu.addSeparator()
-        gltfMenu = editor.file_menu.addMenu("glTF Procedurals")
+        gltfMenu = editor.file_menu.addMenu("JSON")
 
-        # Export procedurals item
-        export_json = QAction("Save procedurals...", editor)
+        # Export JSON item
+        export_json = QAction("Save JSON...", editor)
         export_json.triggered.connect(self.export_json_triggered)
         gltfMenu.addAction(export_json)
 
-        # Import procedurals item
-        import_json = QAction("Load procedurals...", editor)
-        import_json.triggered.connect(self.import_gltf_triggered)
+        # Import JSON item
+        import_json = QAction("Load JSON...", editor)
+        import_json.triggered.connect(self.import_json_triggered)
         gltfMenu.addAction(import_json)
 
-        # Show procedurals text. Does most of export, except does not write to file
-        show_json_text = QAction("Show procedurals...", editor)
-        show_json_text.triggered.connect(self.show_gltf_triggered)
+        # Show JSON text. Does most of export, except does not write to file
+        show_json_text = QAction("Show as JSON...", editor)
+        show_json_text.triggered.connect(self.show_json_triggered)
         gltfMenu.addAction(show_json_text)
 
     def set_indent(self, indent):
@@ -90,30 +87,27 @@ class QuiltiX_GLTFPT_serializer:
         """
         self.indent = indent
 
-    def get_gltf_from_graph(self):
+    def get_json_from_graph(self):
         """
         Get the JSON for the given MaterialX document.
         """
         doc = self.editor.qx_node_graph.get_current_mx_graph_doc()
         if doc:
-            doc.importLibrary(self.stdlib)
-            converter = MxGLTFPT.glTFMaterialXConverter()
-            json_result, status = converter.materialXtoGLTF(doc)
-            if (len(json_result) == 0):
-                logger.wanring("Empty result for conversion to glTF")
-                return None
+            exporter = jsoncore.MaterialXJson()
+            json_result = exporter.documentToJSON(doc)
             return json_result
         return None
 
-    def show_gltf_triggered(self):
+    def show_json_triggered(self):
         """
         Show the JSON for the current MaterialX document.
         """
-        json_result = self.get_gltf_from_graph()
+        json_result = self.get_json_from_graph()
 
         # Write JSON UI text box
         if json_result:
-            self.show_text_box(json_result, "glTF Texture Procedurals")
+            text = jsoncore.Util.jsonToJSONString(json_result, self.indent)
+            self.show_text_box(text, "JSON Representation")
 
     def export_json_triggered(self, editor):
         """
@@ -127,33 +121,28 @@ class QuiltiX_GLTFPT_serializer:
             start_path = os.path.join(self.root, "resources", "materials")
 
         path = self.editor.request_filepath(
-            title="Save procedural file",
+            title="Save JSON file",
             start_path=start_path,
-            file_filter="glTF files (*.gltf)",
+            file_filter="JSON files (*.json)",
             mode="save",
         )
 
         if not path:
             return
 
-        json_result = self.get_gltf_from_graph()
+        json_result = self.get_json_from_graph()
 
         # Write JSON to file
         if json_result:
-            with open(path, "w") as f:
-                f.write(json_result)   
-                logger.info("Wrote glTF file: " + path)
+            with open(path, "w"):
+                jsoncore.Util.writeJson(json_result, path, 2)
+                logger.info("Wrote JSON file: " + path)
 
         self.editor.set_current_filepath(path)
 
-    def load_gltf_file(self, inputFile):
-        if os.path.exists(inputFile):
-            json_string = MxGLTFPTUtil.loadJsonFile(inputFile)
-        return json_string
-
-    def import_gltf_triggered(self, editor):
+    def import_json_triggered(self, editor):
         """
-        Import a glTF procedural file into the current graph.
+        Import a JSON file into the current graph.
         """
         start_path = self.editor.mx_selection_path
         if not start_path:
@@ -163,9 +152,9 @@ class QuiltiX_GLTFPT_serializer:
             start_path = os.path.join(self.root, "resources", "materials")
 
         path = self.editor.request_filepath(
-            title="Load glTF file",
+            title="Load JSON file",
             start_path=start_path,
-            file_filter="glTF files (*.gltf)",
+            file_filter="JSON files (*.json)",
             mode="open",
         )
         if not path:
@@ -175,16 +164,9 @@ class QuiltiX_GLTFPT_serializer:
             logger.error("Cannot find input file: " + path)
             return
 
-        converter = MxGLTFPT.glTFMaterialXConverter()
-        json_string = self.load_gltf_file(path)
-        logger.info("Loaded glTF: " + json_string)
-        if (len(json_string) == 0):
-            logger.error("glTF file is empty: " + path)
-            return
-        
-        doc = converter.glTFStringToMaterialX(json_string, self.stdlib)
+        doc = jsoncore.Util.jsonFileToXml(path)
         if doc:
-            logger.info("Loaded glTF file: " + path)
+            logger.info("Loaded JSON file: " + path)
             self.editor.mx_selection_path = path
             self.editor.qx_node_graph.load_graph_from_mx_doc(doc)
             self.editor.qx_node_graph.mx_file_loaded.emit(path)
@@ -212,12 +194,12 @@ class QuiltiX_GLTFPT_serializer:
 
 @qx_plugin.hookimpl
 def after_ui_init(editor: "quiltix.QuiltiXWindow"):
-    editor.gltf_serializer = QuiltiX_GLTFPT_serializer(editor, constants.ROOT)
+    editor.json_serializer = QuiltiX_JSON_serializer(editor, constants.ROOT)
 
 
 def plugin_name() -> str:
-    return "MaterialX GLTF Procedurals"
+    return "MaterialX JSON Serializer"
 
 
 def is_valid() -> bool:
-    return have_module
+    return has_materialxjsoncore
