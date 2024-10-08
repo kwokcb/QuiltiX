@@ -894,7 +894,9 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
                     out_port = port_node.get_output(intf_name)
                     qx_input_port = qx_node.get_input(mx_input.getName())
                     out_port.connect_to(qx_input_port)
-                    help(out_port)
+                    port_node.refresh_input_props()
+                    #port_node.on_output_connected("Next Input", out_port)
+                    #help(out_port)
                 #else:
                 #    logger.debug(f"----------- No interface connection: {mx_input.getNamePath()}")
 
