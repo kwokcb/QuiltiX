@@ -666,6 +666,9 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
         return mx_parent
 
     def set_mx_input_value(self, mx_input, val):
+        if val == None:
+            return
+
         # Convert vector like types
         mx_input_type = mx_input.getType()
         if mx_input_type == "vector2":
@@ -815,6 +818,8 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
             for cur_qx_node, cur_mx_node in qx_node_to_mx_node.items():
                 cur_qx_node.graph.connect_qx_inputs_from_mx_node(cur_qx_node, cur_mx_node)
 
+            #self.connect_qx_ng_ports_from_mx_ng(ng_node, ng, node.current_mx_def)
+
             graphs = [self.get_root_graph()]
             graphs += list(self.sub_graphs.values())
             for graph in graphs:
@@ -841,6 +846,9 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
     # TODO: move to qx_node
     def connect_qx_inputs_from_mx_node(self, qx_node, mx_node):
         for mx_input in mx_node.getActiveInputs():
+            inName = mx_input.getNamePath()
+            logger.debug(f'------- connect_qx_inputs_from_mx_node: {inName}')
+
             mx_connected_port = mx_input.getConnectedOutput()
             # Not every input has a connections
             if mx_connected_port:
@@ -850,6 +858,8 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
                 qx_input_node = self.get_node_by_name(ng_name)
                 qx_output_port = qx_input_node.get_output(mx_connected_port.getName())
                 qx_input_port.connect_to(qx_output_port)
+            #else:
+            #    logger.info(f"no connected output on: {inName}")
 
             mx_connected_node = mx_input.getConnectedNode()
             if mx_connected_node:
@@ -872,8 +882,21 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
 
                 if qx_input_port:
                     qx_input_port.connect_to(qx_output_port)
-                else:
-                    logger.warning("invalid in port: {mx_input_name}")
+                #else:
+                #    logger.warning(f"invalid in port: {mx_input_name}")
+
+
+            for mx_input in mx_node.getActiveInputs():
+                if mx_input.hasInterfaceName():   
+                    intf_name = mx_input.getInterfaceName()
+                    logger.debug("-------------- ADD MISSING connect interface name: %s" % intf_name)   
+                    port_node = qx_node.graph.get_input_port_nodes()[0]
+                    out_port = port_node.get_output(intf_name)
+                    qx_input_port = qx_node.get_input(mx_input.getName())
+                    out_port.connect_to(qx_input_port)
+                    help(out_port)
+                #else:
+                #    logger.debug(f"----------- No interface connection: {mx_input.getNamePath()}")
 
     def connect_qx_ng_ports_from_mx_ng(self, ng_node, mx_ng, mx_def):
         out_port_node = ng_node.get_sub_graph().get_output_port_nodes()[0]
@@ -893,6 +916,7 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
             for mx_input in mx_node.getActiveInputs():
                 if mx_input.hasInterfaceName():
                     intf_name = mx_input.getInterfaceName()
+                    logger.info("read interface name: %s" % intf_name)
                     out_port = in_port_node.get_output(intf_name)
                     qx_output_node = ng_node.get_sub_graph().get_node_by_name(mx_node.getName())
                     qx_input_port = qx_output_node.get_input(mx_input.getName())
@@ -941,6 +965,8 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
         push_undo=True,
         create_ports=True
     ):
+        logger.debug(f'>>>>>> create_nodegraph_from_mx_nodegraph: {mx_node.getName()}')
+
         name = name or mx_node.getName()
         qx_node = self.create_node(
             "Other.QxGroupNode",
@@ -952,6 +978,8 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
             push_undo=push_undo
         )
         qx_node.create_property("nodedef", mx_node.getNodeDef())
+        self.expand_group_node(qx_node)
+        
         if create_ports:
             for output in mx_node.getOutputs():
                 color = qx_node_module.QxNodeBase._random_color_from_string(str(output.getType()))
@@ -959,9 +987,9 @@ class QxNodeGraph(NodeGraphQt.NodeGraph):
 
             for minput in mx_node.getInputs():
                 color = qx_node_module.QxNodeBase._random_color_from_string(str(minput.getType()))
+                logger.debug(f'-------------------- create input port {minput.getName()} on graph: {name}')
                 qx_node.add_input(minput.getName(), color=color)
             
-        self.expand_group_node(qx_node)
         return qx_node
 
     def get_qx_node_type_from_mx_node(self, mx_node):

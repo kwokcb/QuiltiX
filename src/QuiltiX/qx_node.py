@@ -569,9 +569,11 @@ class QxGroupNode(QxGroupNodeBase):
             locked=locked,
             painter_func=painter_func
         )
+        logger.debug(f"1 ************************* Adding input {port.name()} to subgraph")
         if self.is_expanded:
             input_port = self.get_sub_graph().get_input_port_nodes()[0]
             if not input_port.get_output(port.name()):
+                logger.debug(f"2 ************************* Adding input {port.name()} to subgraph")
                 input_port.add_output(port.name())
 
         return port
@@ -618,6 +620,8 @@ class QxPortInputNode(PortInputNode):
 
     def on_output_connected(self, in_port, out_port):
         if in_port.name() == "Next Input":
+            logger.debug(f"********************************* Connected {out_port.name()} to {in_port.name()}")
+
             name = "in_" + out_port.node().name()
             while self.get_output(name):
                 if "_" in name:
