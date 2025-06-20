@@ -100,7 +100,7 @@ class QuiltiXWindow(QMainWindow):
             ROOT,
             "resources",
             "materials",
-            "standard_surface.mtlx"
+            "open_pbr_surface.mtlx"
         )
         if not os.path.exists(mx_file):
             return
