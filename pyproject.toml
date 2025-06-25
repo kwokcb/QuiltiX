@@ -1,6 +1,6 @@
 [project]
 name = "QuiltiX"
-version = "0.7.0"
+version = "0.8.0"
 description = "MaterialX Graphical Node Editor"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -23,9 +23,9 @@ classifiers = [
 
 dependencies = [
     "pluggy",
-    "materialx==1.38.9",
+    "materialx~=1.39",
     "QtPy",
-    "PySide6~=6.6",
+    "PySide6~=6.5.0",
     "PyOpenGL",
     "PyOpenGL_accelerate",
     # "OpenUSD_build @ git+https://github.com/PrismPipeline/OpenUSD_build.git@24.03-win-mtlx-1.38.9"
